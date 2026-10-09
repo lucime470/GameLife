@@ -1,0 +1,371 @@
+/* GameLife 本地面板 · 深色主题（与 render/templates 配色保持一致） */
+:root {
+  --bg-primary: #0d1117;
+  --bg-card: #161b22;
+  --bg-card-hover: #1b2330;
+  --bg-elevated: #1f2633;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-yellow: #d29922;
+  --accent-red: #f85149;
+  --accent-purple: #bc8cff;
+  --border-color: rgba(230, 237, 243, 0.09);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-stack);
+  background:
+    radial-gradient(1100px 520px at 85% -8%, rgba(88,166,255,0.12), transparent 62%),
+    radial-gradient(900px 460px at -5% 4%, rgba(188,140,255,0.09), transparent 55%),
+    var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+a { color: var(--accent-blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; cursor: pointer; }
+h1, h2, h3 { font-weight: 800; letter-spacing: 0.01em; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 22px 20px 80px; }
+
+/* 顶栏 */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 14px 18px; margin-bottom: 22px;
+  background: rgba(13,17,23,0.86);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+.brand { font-size: 1.25rem; font-weight: 900; }
+.brand span {
+  background: linear-gradient(100deg, #58a6ff, #bc8cff 55%, #f85149 110%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.topbar .spacer { flex: 1 1 auto; }
+select, input, textarea {
+  font-family: inherit; font-size: 0.92rem;
+  background: var(--bg-elevated); color: var(--text-primary);
+  border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  padding: 8px 10px; outline: none;
+}
+select:focus, input:focus { border-color: var(--accent-blue); }
+label.chk { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 0.88rem; }
+
+.btn {
+  background: var(--bg-elevated); color: var(--text-primary);
+  border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  padding: 8px 14px; font-size: 0.9rem; font-weight: 600;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.btn:hover { background: var(--bg-card-hover); border-color: rgba(88,166,255,0.45); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: linear-gradient(100deg, #1f6feb, #8957e5); border-color: transparent; }
+.btn.danger { border-color: rgba(248,81,73,0.5); color: #ffb3ae; }
+.btn.on { background: linear-gradient(100deg, #238636, #2ea043); border-color: transparent; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* 卡片 */
+.grid { display: grid; gap: 16px; }
+.grid.cards { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.grid.cols2 { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); padding: 18px 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.28);
+}
+.card h2 { font-size: 1.02rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h2 .tag {
+  font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+  border: 1px solid var(--border-color); border-radius: 999px; padding: 2px 8px;
+}
+.metric { text-align: center; padding: 20px 14px; }
+.metric .label { color: var(--text-secondary); font-size: 0.82rem; letter-spacing: 0.06em; }
+.metric .value { font-size: 2.1rem; font-weight: 900; margin-top: 6px; line-height: 1.1; }
+.metric .value small { font-size: 0.95rem; opacity: 0.7; margin-left: 3px; }
+.metric .note { color: var(--text-muted); font-size: 0.78rem; margin-top: 3px; }
+
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.muted { color: var(--text-muted); }
+.sec { color: var(--text-secondary); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border-color); }
+th { color: var(--text-muted); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.05em; }
+tbody tr:hover { background: var(--bg-card-hover); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.badge {
+  display: inline-block; padding: 1px 8px; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 700; border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+.badge.s未玩 { color: #8b949e; }
+.badge.s在玩 { color: #58a6ff; border-color: rgba(88,166,255,0.4); }
+.badge.s搁置 { color: #d29922; border-color: rgba(210,153,34,0.4); }
+.badge.s沉迷 { color: #f85149; border-color: rgba(248,81,73,0.4); }
+.badge.s通关 { color: #3fb950; border-color: rgba(63,185,80,0.4); }
+
+.bar { height: 8px; border-radius: 999px; background: var(--bg-elevated); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, #1f6feb, #8957e5); }
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.item .name { font-weight: 600; }
+.item .why { color: var(--text-muted); font-size: 0.78rem; }
+.item .val { color: var(--accent-green); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.log {
+  background: #05070a; border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  padding: 12px; max-height: 260px; overflow: auto;
+  font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.8rem;
+  white-space: pre-wrap; word-break: break-word; color: #b9c6d3;
+}
+.frames { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.frame {
+  border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+  overflow: hidden; background: var(--bg-elevated);
+}
+.frame header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; border-bottom: 1px solid var(--border-color); font-size: 0.86rem;
+}
+.frame iframe { width: 100%; height: 460px; border: 0; background: #0d1117; }
+
+/* 六个可视化块：整块可点（点任意处在新标签打开整页） */
+.frame { position: relative; transition: border-color 0.15s, transform 0.1s; }
+.frame.clickable { cursor: pointer; }
+.frame.clickable:hover { border-color: rgba(88,166,255,0.55); transform: translateY(-2px); }
+.frame header { position: relative; z-index: 3; }
+.frame .frame-meta { display: inline-flex; align-items: center; gap: 8px; }
+.frame .frame-status { font-size: 0.72rem; color: var(--accent-yellow); }
+.frame .frame-status.err { color: var(--accent-red); }
+/* 提示文字默认**完全不可见**（用户不想要常驻的文字链接感），鼠标悬停或键盘聚焦才淡入；
+   用 visibility 一起切换，避免只靠透明度留下可点区域 */
+.frame .frame-hint {
+  font-size: 0.76rem; color: var(--text-muted);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+.frame.clickable:hover .frame-hint,
+.frame.clickable:focus-within .frame-hint {
+  opacity: 1; visibility: visible; color: var(--accent-blue);
+}
+.frame-body { position: relative; }
+/* iframe 会吞掉点击：盖一层透明链接接管「点击」，但**右侧必须留出滚动条宽度**，
+   让 iframe 自己的滚动条露出来、能直接被拖。
+   注意：iframe **不能**再设 pointer-events: none —— 那样连它自己的滚动条都收不到
+   指针事件，就变成「滚动条拖不动」（本次要修的 bug）；滚轮由 .frame-hit 的
+   wheel 监听转发进 iframe（见 app.js::forwardWheelToFrame）。
+   17px = Windows 经典滚动条宽度，也是本机 Playwright 里注入的滚动条宽度。 */
+.frame-body iframe { display: block; }
+.frame-hit {
+  position: absolute; top: 0; bottom: 0; left: 0; right: 17px;   /* 右侧 17px 留给滚动条 */
+  z-index: 2; display: block; cursor: pointer;
+}
+
+/* 游戏族谱：每个系列一个框，整框可点 */
+.series-grid {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  max-height: 460px; overflow: auto; padding: 2px;
+}
+.sbox {
+  display: flex; flex-direction: column; gap: 6px; padding: 10px;
+  background: var(--bg-elevated); border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); color: inherit; text-decoration: none;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.sbox:hover { border-color: rgba(88,166,255,0.55); transform: translateY(-2px); text-decoration: none; }
+.sbox-covers { display: flex; gap: 4px; height: 54px; overflow: hidden; }
+.sbox-covers img { width: 36px; height: 54px; object-fit: cover; border-radius: 3px; flex: 0 0 auto; }
+/* 已拥有 = 亮绿边 + 左下角小圆点；未拥有但玩过（家庭库）= 蓝色细边、无圆点。
+   缩略图默认都是「本机有图的作品」，这种标记只用来区分「哪几部是这个账号自己的」。 */
+.sbox-covers img.mine {
+  outline: 2px solid rgba(63,185,80,0.9); outline-offset: -2px;
+  box-shadow: 0 0 0 1px rgba(5,7,10,0.65), 0 0 8px rgba(63,185,80,0.35);
+}
+.sbox-covers .ci { position: relative; flex: 0 0 auto; display: block; line-height: 0; }
+.sbox-covers .ci.mine::before {
+  content: ""; position: absolute; left: 3px; bottom: 3px; width: 6px; height: 6px;
+  border-radius: 50%; background: #3fb950; box-shadow: 0 0 0 1.5px rgba(5,7,10,0.8);
+}
+.sbox-covers .ci.played img {
+  outline: 2px solid rgba(88,166,255,0.55); outline-offset: -2px;
+}
+.sbox-covers .ph {
+  width: 36px; height: 54px; border-radius: 3px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #1b2330, #101620);
+  color: var(--text-muted); font-weight: 900; font-size: 0.95rem;
+}
+.sbox-name { font-size: 0.86rem; font-weight: 700; color: var(--text-primary); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sbox-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.sbox-foot .badge { font-size: 0.66rem; padding: 0 6px; }
+.sbox-open { font-size: 0.68rem; color: var(--text-muted); }
+.sbox:hover .sbox-open { color: var(--accent-blue); }
+
+/* 族谱与左栏（性价比榜）等高：这张卡片改成纵向弹性容器，滚动区吃掉剩余高度。
+   只作用于挂了 .card-fill 的卡片（app.js 给「游戏族谱」那张挂上），
+   系列详情页里同名的 .series-grid 不受影响。 */
+.card.card-fill { display: flex; flex-direction: column; min-height: 0; }
+.card.card-fill > #series { flex: 1 1 auto; min-height: 0; }
+.card-fill .series-grid { flex: 1 1 0; min-height: 0; max-height: none; }
+
+.pill { font-size: 0.74rem; color: var(--text-muted); }
+.toast {
+  position: fixed; right: 22px; bottom: 22px; z-index: 50;
+  max-width: 420px; padding: 12px 16px; border-radius: var(--radius-sm);
+  background: var(--bg-elevated); border: 1px solid rgba(88,166,255,0.4);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5); font-size: 0.88rem;
+}
+.toast.err { border-color: rgba(248,81,73,0.6); }
+.toast.warn { border-color: rgba(210,153,34,0.7); }
+.hint { font-size: 0.82rem; color: var(--text-muted); margin-top: 8px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 0.88rem; }
+.kv .k { color: var(--text-secondary); }
+.hidden { display: none !important; }
+
+/* ---------------- 封面缩略图（推荐卡片）/ 中文名 ---------------- */
+/* 库里封面横竖混用（竖版 300x450、横版 460x215），一律按原始比例显示：
+   固定高度 + 自适应宽度 + object-fit: contain —— 不拉伸、不裁切。 */
+.thumb {
+  height: 56px; width: auto; max-width: 120px;
+  object-fit: contain; object-position: center;
+  border-radius: 4px; background: var(--bg-elevated);
+  display: inline-block; vertical-align: middle;
+}
+.thumb-none {
+  width: 92px; height: 56px; line-height: 56px; text-align: center;
+  color: var(--text-muted); font-size: 0.72rem; border: 1px dashed var(--border-color);
+  border-radius: 4px; box-sizing: border-box; display: inline-block;
+  background: var(--bg-elevated); vertical-align: middle;
+}
+.rowleft { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.name-cn { font-weight: 600; }
+.recmatch { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: 0 0 auto; }
+.recmatch .scorelab { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
+
+/* ---------------- 游戏明细：统一卡片网格 ---------------- */
+/* 统一用竖版封面（Steam 标准库封面），固定卡片尺寸：
+   竖版铺满、横版在同一个框里完整居中（留边不裁切）、缺图统一占位 —— 一列高矮齐平。 */
+.game-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  max-height: 660px; overflow: auto; padding: 2px;
+}
+.gcard {
+  background: var(--bg-elevated); border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); overflow: hidden;
+  display: flex; flex-direction: column;
+  /* 固定高度：标题 1~3 行、徽标多寡，卡片都一般高，行列齐平。
+     400px = 封面（2:3 约 225.6）+ 正文可用约 174px，足够放「中文名（最多 3 行）
+     + 类型徽标 + 状态/时长 + 底部小字」，任何组合都不会压到封面。 */
+  height: 400px;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.gcard:hover { border-color: rgba(88,166,255,0.45); transform: translateY(-2px); }
+.gc-cover {
+  position: relative; width: 100%; flex: 0 0 auto; aspect-ratio: 2 / 3;
+  background: linear-gradient(160deg, #1a2130, #12171f);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.gc-img { display: block; }
+.gc-img.portrait { width: 100%; height: 100%; object-fit: cover; }      /* 2:3 正好贴合，无裁切 */
+.gc-img.landscape { width: 100%; height: 100%; object-fit: contain; }   /* 保持比例，上下留边 */
+.gc-ph {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 2rem; font-weight: 900; letter-spacing: 0.05em;
+  background: linear-gradient(160deg, #1b2330, #101620);
+}
+/* 封面加载失败：隐藏破图，改用与「无图」一致的字母占位（风格统一、不裂图） */
+.gc-cover.noimg > img { visibility: hidden; }
+.gc-cover.noimg::after {
+  content: attr(data-initial);
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 2rem; font-weight: 900;
+  background: linear-gradient(160deg, #1b2330, #101620);
+}
+.gc-body {
+  padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 4px;
+  min-width: 0; flex: 1 1 auto; min-height: 0;
+}
+/* 正文里所有子块都不许被压缩：中文名一旦被压扁（行高 > 自身高度）文字就被裁。
+   正文高于内容时，多出来的空隙由 .gc-meta 的 margin-top: auto 吸收。 */
+.gc-body > * { flex: 0 0 auto; }
+.gc-body .name-cn {
+  font-size: 0.86rem; font-weight: 700; line-height: 1.3;
+  min-height: 2.6em;                   /* 单行标题也占满两行，卡片高度才一致 */
+  max-height: 3.9em;                   /* 最多 3 行：超长标题也完整显示，不裁字 */
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+/* 类型徽标固定一行：徽标高写死 16px，容器 20px = 一行 + 行间距，
+   第二行刚好完全落在裁切线之外（不会露出半个徽标）。 */
+.gc-genres { display: flex; flex-wrap: wrap; gap: 4px; height: 20px; overflow: hidden; }
+.gc-genres .badge {
+  display: inline-flex; align-items: center; height: 16px; padding: 0 6px;
+  font-size: 0.66rem; line-height: 1; white-space: nowrap; flex: 0 0 auto;
+}
+/* 徽标行固定 24px、绝不换行：只有「状态 + 时长」两块，一定放得下。
+   「家庭共享」已挪到封面角标（.gc-chip），行里不再挤三块导致换行撑高卡片。 */
+.gc-meta {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  height: 24px; margin-top: auto; flex-wrap: nowrap; overflow: hidden;
+}
+.gc-meta .badge { white-space: nowrap; flex: 0 0 auto; }
+/* 最后游玩：整行给日期，绝不裁字（日期固定 10 字符，130px 宽放得下） */
+.gc-last { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; }
+/* 「家庭共享」角标（封面左上角）：徽标行只留「状态 + 时长」两块，恒为一行 24px */
+.gc-chip {
+  position: absolute; left: 5px; top: 5px; z-index: 2;
+  font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+  background: rgba(5,7,10,0.72); color: var(--text-primary);
+}
+
+/* ---------------- 添加账号弹窗 ---------------- */
+.modal {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(5,7,10,0.66); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box {
+  width: min(520px, 100%); max-height: 82vh; overflow: auto;
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius-md); padding: 16px 18px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.modal-head b { font-size: 1.02rem; }
+.add-row { justify-content: flex-start; cursor: pointer; padding: 6px 8px; border-radius: var(--radius-sm); }
+.add-row:hover { background: var(--bg-card-hover); }
+.add-row input { margin-right: 6px; }
+
+/* 管理账号：隐藏列表里的「恢复显示」按钮 */
+#accountCard .item { gap: 12px; }
+#accountCard .item .name { overflow-wrap: anywhere; }
+#accountCard .item .btn { flex: 0 0 auto; }
+#hiddenAccounts { max-height: 260px; overflow: auto; }
+.item .badge { margin-left: 6px; }
+
+/* ---------------- 日志入口（底部一行小字 + 按钮） ---------------- */
+.logbar { margin-top: 16px; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.logbar code {
+  font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.78rem;
+  color: var(--text-secondary); word-break: break-all;
+}
+.modal-box.wide { width: min(900px, 100%); }
+
+/* 家庭共享条目：灰显追加在明细末尾，不参与任何统计 */
+.gcard.shared { opacity: .55; filter: grayscale(.6); }
+.gcard.shared .badge { opacity: 1; }

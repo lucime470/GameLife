@@ -1,0 +1,575 @@
+{
+  "_meta": {
+    "purpose": "游戏族谱（engine/series_tree.py）的**手工补充**映射。键为 Steam appid（字符串），值为 {series: 系列名, name: 展示名}。下划线开头的键（_meta/_official_aliases）为元数据，代码读取时忽略。",
+    "authority": "权威主源是官方商店 franchise= 检索（category1=998 只要游戏本体），结果缓存在 data/series_official.json；离线兜底为本机 appinfo.vdf 的 官方 franchise 标注；本文件仅补官方没有任何标注的作品并提供中文展示名。",
+    "display": "engine.series_tree 只输出 owned_count>0 的系列；下划线元数据里的 _official_aliases 做「官方英文系列名 -> 中文展示名」映射，映射后同名的官方/手工系列会归并为一条（展示名全局唯一）。",
+    "extend": "直接按相同格式追加条目即可；同一 series 名自动归组。新增官方 franchise 中文名请加进 _official_aliases，别名值重复仅在同一系列的不同官方叫法（如 Skyrim/The Elder Scrolls）时才允许。",
+    "updated": "2026-09-23"
+  },
+  "70": {
+    "series": "半条命",
+    "name": "半条命"
+  },
+  "50": {
+    "series": "半条命",
+    "name": "半条命：对立势力"
+  },
+  "130": {
+    "series": "半条命",
+    "name": "半条命：蓝色沸点"
+  },
+  "220": {
+    "series": "半条命",
+    "name": "半条命2"
+  },
+  "380": {
+    "series": "半条命",
+    "name": "半条命2：第一章"
+  },
+  "420": {
+    "series": "半条命",
+    "name": "半条命2：第二章"
+  },
+  "546560": {
+    "series": "半条命",
+    "name": "半条命：爱莉克斯"
+  },
+  "400": {
+    "series": "传送门",
+    "name": "传送门"
+  },
+  "620": {
+    "series": "传送门",
+    "name": "传送门2"
+  },
+  "500": {
+    "series": "求生之路",
+    "name": "求生之路"
+  },
+  "550": {
+    "series": "求生之路",
+    "name": "求生之路2"
+  },
+  "10": {
+    "series": "反恐精英",
+    "name": "反恐精英"
+  },
+  "80": {
+    "series": "反恐精英",
+    "name": "反恐精英：零点行动"
+  },
+  "240": {
+    "series": "反恐精英",
+    "name": "反恐精英：起源"
+  },
+  "730": {
+    "series": "反恐精英",
+    "name": "反恐精英2"
+  },
+  "20": {
+    "series": "军团要塞",
+    "name": "军团要塞经典"
+  },
+  "440": {
+    "series": "军团要塞",
+    "name": "军团要塞2"
+  },
+  "570": {
+    "series": "Dota",
+    "name": "Dota 2"
+  },
+  "3910": {
+    "series": "文明",
+    "name": "文明3"
+  },
+  "3900": {
+    "series": "文明",
+    "name": "文明4"
+  },
+  "8930": {
+    "series": "文明",
+    "name": "文明5"
+  },
+  "289070": {
+    "series": "文明",
+    "name": "文明6"
+  },
+  "65980": {
+    "series": "文明",
+    "name": "文明：超越地球"
+  },
+  "1295660": {
+    "series": "文明",
+    "name": "文明7"
+  },
+  "20900": {
+    "series": "巫师",
+    "name": "巫师1"
+  },
+  "20920": {
+    "series": "巫师",
+    "name": "巫师2"
+  },
+  "292030": {
+    "series": "巫师",
+    "name": "巫师3"
+  },
+  "973760": {
+    "series": "巫师",
+    "name": "巫师之昆特牌"
+  },
+  "211420": {
+    "series": "黑暗之魂",
+    "name": "黑暗之魂1"
+  },
+  "236430": {
+    "series": "黑暗之魂",
+    "name": "黑暗之魂2"
+  },
+  "335300": {
+    "series": "黑暗之魂",
+    "name": "黑暗之魂2：原罪学者"
+  },
+  "374320": {
+    "series": "黑暗之魂",
+    "name": "黑暗之魂3"
+  },
+  "304240": {
+    "series": "生化危机",
+    "name": "生化危机HD重制版"
+  },
+  "339340": {
+    "series": "生化危机",
+    "name": "生化危机0 HD"
+  },
+  "254700": {
+    "series": "生化危机",
+    "name": "生化危机4"
+  },
+  "2050650": {
+    "series": "生化危机",
+    "name": "生化危机4重制版"
+  },
+  "21690": {
+    "series": "生化危机",
+    "name": "生化危机5"
+  },
+  "221040": {
+    "series": "生化危机",
+    "name": "生化危机6"
+  },
+  "418370": {
+    "series": "生化危机",
+    "name": "生化危机7"
+  },
+  "883710": {
+    "series": "生化危机",
+    "name": "生化危机2重制版"
+  },
+  "952060": {
+    "series": "生化危机",
+    "name": "生化危机3重制版"
+  },
+  "1196590": {
+    "series": "生化危机",
+    "name": "生化危机8：村庄"
+  },
+  "19900": {
+    "series": "刺客信条",
+    "name": "刺客信条"
+  },
+  "33230": {
+    "series": "刺客信条",
+    "name": "刺客信条2"
+  },
+  "48190": {
+    "series": "刺客信条",
+    "name": "刺客信条：兄弟会"
+  },
+  "201870": {
+    "series": "刺客信条",
+    "name": "刺客信条：启示录"
+  },
+  "208480": {
+    "series": "刺客信条",
+    "name": "刺客信条3"
+  },
+  "242050": {
+    "series": "刺客信条",
+    "name": "刺客信条4：黑旗"
+  },
+  "311560": {
+    "series": "刺客信条",
+    "name": "刺客信条：叛变"
+  },
+  "289650": {
+    "series": "刺客信条",
+    "name": "刺客信条：大革命"
+  },
+  "368500": {
+    "series": "刺客信条",
+    "name": "刺客信条：枭雄"
+  },
+  "582160": {
+    "series": "刺客信条",
+    "name": "刺客信条：起源"
+  },
+  "812140": {
+    "series": "刺客信条",
+    "name": "刺客信条：奥德赛"
+  },
+  "2208920": {
+    "series": "刺客信条",
+    "name": "刺客信条：英灵殿"
+  },
+  "22320": {
+    "series": "上古卷轴",
+    "name": "上古卷轴3：晨风"
+  },
+  "22330": {
+    "series": "上古卷轴",
+    "name": "上古卷轴4：湮灭"
+  },
+  "72850": {
+    "series": "上古卷轴",
+    "name": "上古卷轴5：天际"
+  },
+  "489830": {
+    "series": "上古卷轴",
+    "name": "上古卷轴5：天际特别版"
+  },
+  "306130": {
+    "series": "上古卷轴",
+    "name": "上古卷轴OL"
+  },
+  "38400": {
+    "series": "辐射",
+    "name": "辐射1"
+  },
+  "38410": {
+    "series": "辐射",
+    "name": "辐射2"
+  },
+  "22300": {
+    "series": "辐射",
+    "name": "辐射3"
+  },
+  "22380": {
+    "series": "辐射",
+    "name": "辐射：新维加斯"
+  },
+  "377160": {
+    "series": "辐射",
+    "name": "辐射4"
+  },
+  "1151340": {
+    "series": "辐射",
+    "name": "辐射76"
+  },
+  "12100": {
+    "series": "侠盗猎车手",
+    "name": "GTA3"
+  },
+  "12110": {
+    "series": "侠盗猎车手",
+    "name": "GTA：罪恶都市"
+  },
+  "12120": {
+    "series": "侠盗猎车手",
+    "name": "GTA：圣安地列斯"
+  },
+  "12210": {
+    "series": "侠盗猎车手",
+    "name": "GTA4"
+  },
+  "271590": {
+    "series": "侠盗猎车手",
+    "name": "GTA5"
+  },
+  "8980": {
+    "series": "无主之地",
+    "name": "无主之地1"
+  },
+  "49520": {
+    "series": "无主之地",
+    "name": "无主之地2"
+  },
+  "261640": {
+    "series": "无主之地",
+    "name": "无主之地：前传"
+  },
+  "397540": {
+    "series": "无主之地",
+    "name": "无主之地3"
+  },
+  "1017900": {
+    "series": "帝国时代",
+    "name": "帝国时代：决定版"
+  },
+  "221380": {
+    "series": "帝国时代",
+    "name": "帝国时代2HD"
+  },
+  "813780": {
+    "series": "帝国时代",
+    "name": "帝国时代2决定版"
+  },
+  "933110": {
+    "series": "帝国时代",
+    "name": "帝国时代3决定版"
+  },
+  "1466860": {
+    "series": "帝国时代",
+    "name": "帝国时代4"
+  },
+  "409710": {
+    "series": "生化奇兵",
+    "name": "生化奇兵1重制版"
+  },
+  "409720": {
+    "series": "生化奇兵",
+    "name": "生化奇兵2重制版"
+  },
+  "8870": {
+    "series": "生化奇兵",
+    "name": "生化奇兵：无限"
+  },
+  "524220": {
+    "series": "尼尔",
+    "name": "尼尔：机械纪元"
+  },
+  "1113560": {
+    "series": "尼尔",
+    "name": "尼尔：人工生命"
+  },
+  "203160": {
+    "series": "古墓丽影",
+    "name": "古墓丽影2013"
+  },
+  "391220": {
+    "series": "古墓丽影",
+    "name": "古墓丽影：崛起"
+  },
+  "750920": {
+    "series": "古墓丽影",
+    "name": "古墓丽影：暗影"
+  },
+  "220440": {
+    "series": "鬼泣",
+    "name": "DmC：鬼泣"
+  },
+  "329050": {
+    "series": "鬼泣",
+    "name": "鬼泣4特别版"
+  },
+  "601150": {
+    "series": "鬼泣",
+    "name": "鬼泣5"
+  },
+  "286690": {
+    "series": "地铁",
+    "name": "地铁2033：回归"
+  },
+  "287390": {
+    "series": "地铁",
+    "name": "地铁：最后的曙光回归"
+  },
+  "412020": {
+    "series": "地铁",
+    "name": "地铁：离去"
+  },
+  "239140": {
+    "series": "消逝的光芒",
+    "name": "消逝的光芒1"
+  },
+  "534380": {
+    "series": "消逝的光芒",
+    "name": "消逝的光芒2"
+  },
+  "582010": {
+    "series": "怪物猎人",
+    "name": "怪物猎人：世界"
+  },
+  "1446780": {
+    "series": "怪物猎人",
+    "name": "怪物猎人：崛起"
+  },
+  "1277400": {
+    "series": "怪物猎人",
+    "name": "怪物猎人物语2"
+  },
+  "1113000": {
+    "series": "女神异闻录",
+    "name": "女神异闻录4黄金版"
+  },
+  "1687950": {
+    "series": "女神异闻录",
+    "name": "女神异闻录5皇家版"
+  },
+  "2161700": {
+    "series": "女神异闻录",
+    "name": "女神异闻录3Reload"
+  },
+  "218620": {
+    "series": "收获日",
+    "name": "收获日2"
+  },
+  "1272080": {
+    "series": "收获日",
+    "name": "收获日3"
+  },
+  "255710": {
+    "series": "城市天际线",
+    "name": "城市：天际线"
+  },
+  "949230": {
+    "series": "城市天际线",
+    "name": "城市：天际线2"
+  },
+  "244160": {
+    "series": "家园",
+    "name": "家园重制版合集"
+  },
+  "281610": {
+    "series": "家园",
+    "name": "家园：卡拉克沙漠"
+  },
+  "976730": {
+    "series": "光环",
+    "name": "光环：士官长合集"
+  },
+  "1240440": {
+    "series": "光环",
+    "name": "光环：无限"
+  },
+  "1593500": {
+    "series": "战神",
+    "name": "战神2018"
+  },
+  "2322010": {
+    "series": "战神",
+    "name": "战神：诸神黄昏"
+  },
+  "1151640": {
+    "series": "地平线",
+    "name": "地平线：零之曙光"
+  },
+  "2420110": {
+    "series": "地平线",
+    "name": "地平线：西之绝境"
+  },
+  "214950": {
+    "series": "全面战争",
+    "name": "全面战争：罗马2"
+  },
+  "779340": {
+    "series": "全面战争",
+    "name": "全面战争：三国"
+  },
+  "_official_aliases": {
+    "Age of Empires": "帝国时代",
+    "Apex Legends": "Apex 英雄",
+    "Assassin's Creed": "刺客信条",
+    "Baldur's Gate": "博德之门",
+    "Ball x Pit": "Ball x Pit",
+    "Batman: Arkham": "蝙蝠侠：阿卡姆",
+    "Battlefield": "战地",
+    "Beholder": "旁观者",
+    "Binding of Isaac": "以撒的结合",
+    "BioShock": "生化奇兵",
+    "Blasphemous": "渎神",
+    "Borderlands": "无主之地",
+    "Cassette Beasts": "磁带妖怪",
+    "Castlevania": "恶魔城",
+    "Cities: Skylines": "城市天际线",
+    "Command & Conquer": "命令与征服",
+    "Company of Heroes": "英雄连",
+    "Counter-Strike": "反恐精英",
+    "Crusader Kings": "十字军之王",
+    "Crysis": "孤岛危机",
+    "DOOM": "毁灭战士",
+    "Danganronpa": "弹丸论破",
+    "Dark Souls": "黑暗之魂",
+    "Deponia": "德波尼亚",
+    "Destiny": "命运",
+    "Devil May Cry": "鬼泣",
+    "Don't Starve": "饥荒",
+    "Dota": "Dota",
+    "Dying Light": "消逝的光芒",
+    "Europa Universalis": "欧陆风云",
+    "Fallout": "辐射",
+    "Football Manager": "足球经理",
+    "Forza": "极限竞速",
+    "Goat's Tale": "Goat's Tale",
+    "God of War": "战神",
+    "Grand Theft Auto": "侠盗猎车手",
+    "HELLDIVERS™": "绝地潜兵",
+    "HITMAN": "杀手",
+    "Hades": "哈迪斯",
+    "Half-Life": "半条命",
+    "Halo": "光环",
+    "Hearts of Iron": "钢铁雄心",
+    "Hitman": "杀手",
+    "Hollow Knight": "空洞骑士",
+    "Homeworld": "家园",
+    "Horizon": "地平线",
+    "House Flipper": "房产达人",
+    "Insurgency": "叛乱",
+    "Killing Floor": "杀戮空间",
+    "Kingdom": "王国",
+    "Kingdom Come": "天国拯救",
+    "Kingdom Two Crowns": "王国：两位君主",
+    "Kunitsu-Gami: Path of the Goddess": "祇：女神之路",
+    "Landfall": "Landfall",
+    "Left 4 Dead": "求生之路",
+    "MechWarrior": "机甲战士",
+    "Mega Man": "洛克人",
+    "Melvor Idle": "梅尔沃放置",
+    "Metal Gear": "合金装备",
+    "Metro": "地铁",
+    "Mirror": "魔镜",
+    "Monster Hunter": "怪物猎人",
+    "Mortal Kombat": "真人快打",
+    "NBA 2K": "NBA 2K",
+    "NIER": "尼尔",
+    "Ori": "奥日",
+    "Overcooked!": "胡闹厨房",
+    "Overwatch": "守望先锋",
+    "Oxygen Not Included": "缺氧",
+    "PAYDAY": "收获日",
+    "PICO PARK": "PICO PARK",
+    "Persona": "女神异闻录",
+    "Portal": "传送门",
+    "Prototype": "虐杀原形",
+    "RIDE": "RIDE",
+    "Rainbow 6 Franchise": "彩虹六号",
+    "Red Dead Redemption": "荒野大镖客",
+    "Resident Evil": "生化危机",
+    "Risk of Rain": "雨中冒险",
+    "SMITE": "神之浩劫",
+    "Saints Row": "黑道圣徒",
+    "Science Adventure Series": "科学冒险系列",
+    "Shadow Warrior": "影武者",
+    "Sid Meier's Civilization": "文明",
+    "Skyrim": "上古卷轴",
+    "Street Fighter": "街头霸王",
+    "Super Raft Boat": "Super Raft Boat",
+    "THE WITCHER®": "巫师",
+    "Team Fortress": "军团要塞",
+    "The Crew Games": "飙酷车神",
+    "The Elder Scrolls": "上古卷轴",
+    "The Escapists Franchise": "逃脱者",
+    "The Sims™": "模拟人生",
+    "The Stanley Parable": "史丹利的寓言",
+    "Titanfall": "泰坦天降",
+    "Tom Clancy Franchise": "汤姆·克兰西",
+    "Tomb Raider": "古墓丽影",
+    "Total War": "全面战争",
+    "Train Simulator Classic": "模拟火车",
+    "Trine": "三位一体",
+    "Vampire Survivors": "吸血鬼幸存者",
+    "Warhammer": "战锤",
+    "Waves": "Waves",
+    "Yu-Gi-Oh!": "游戏王"
+  }
+}

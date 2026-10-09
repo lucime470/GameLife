@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>GameLife · 本地网页面板</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Game<span>Life</span> 面板</div>
+    <label class="chk">账号
+      <select id="account"></select>
+    </label>
+    <button class="btn primary" id="btnAddAccount" title="扫描本机 Steam 账号，勾选后加入面板">添加账号</button>
+    <button class="btn" id="btnManageAccounts">管理账号</button>
+    <label class="chk"><input type="checkbox" id="withMeta"> 联网抓取元数据（慢）</label>
+    <button class="btn primary" id="btnRefresh">刷新数据</button>
+    <div class="spacer"></div>
+    <span class="pill" id="status">未加载</span>
+  </div>
+
+  <!-- T6：添加账号后自动补齐数据的进度条（后台跑；前端只轮询本地 /api/job，不联网） -->
+  <div class="card hidden" id="jobCard" style="margin-bottom:16px">
+    <div class="row" style="flex-wrap:nowrap;gap:12px">
+      <b id="jobTitle" style="white-space:nowrap">正在为你补齐数据…</b>
+      <div class="bar" style="flex:1 1 auto;min-width:120px"><i id="jobBarFill" style="width:0%"></i></div>
+      <span class="pill" id="jobText" style="white-space:nowrap">准备中…</span>
+    </div>
+    <div class="hint" id="jobHint" style="margin-top:6px"></div>
+  </div>
+
+  <!-- 首次使用引导：先添加账号 -->
+  <div class="card hidden" id="setupCard" style="margin-bottom:16px">
+    <h2>开始使用 <span class="tag">第 1 步</span></h2>
+    <div class="hint" style="margin-top:0">
+      面板<b>不会自动读取你本机的全部账号</b>。请先点下面的「添加账号」，勾选你想在这里查看的账号。
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="btnSetupAdd">添加账号</button>
+      <span class="pill" id="setupHint">至少添加一个账号后即可看到数据</span>
+    </div>
+  </div>
+
+  <!-- 管理账号（只列已添加；移除不删除任何数据） -->
+  <div class="card hidden" id="accountCard" style="margin-bottom:16px">
+    <h2>管理账号 <span class="tag" id="accountCount">-</span></h2>
+    <div class="hint" style="margin-top:0">
+      这里只显示你<b>已经添加</b>的账号。移除只是把它从面板列表里拿掉，<b>不会删除 Steam 里的任何文件或存档</b>。
+    </div>
+    <div class="sec" style="margin:10px 0 6px">已添加的账号</div>
+    <div class="list" id="addedAccounts"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnAddMore">添加其它账号</button>
+    </div>
+  </div>
+
+  <!-- 概览 -->
+  <div class="grid cards" id="overview">
+    <div class="card metric"><div class="label">总游戏数</div><div class="value" id="mTotal">-</div></div>
+    <div class="card metric"><div class="label">总时长</div><div class="value" id="mHours">-</div></div>
+    <div class="card metric"><div class="label">平均每款</div><div class="value" id="mAvg">-</div></div>
+    <div class="card metric"><div class="label">吃灰率</div><div class="value" id="mDust">-</div></div>
+    <div class="card metric"><div class="label">已玩占比</div><div class="value" id="mPlayed">-</div></div>
+  </div>
+
+  <div class="grid cols2" style="margin-top:16px">
+    <!-- 状态分布 -->
+    <div class="card">
+      <h2>状态分布 <span class="tag" id="metaTag">-</span></h2>
+      <div class="list" id="statusDist"></div>
+    </div>
+    <!-- 挑战 / XP -->
+    <div class="card">
+      <h2>本月挑战 &amp; XP <span class="tag">纯展示，不改账本</span></h2>
+      <div id="challenge" class="stack"><span class="muted">加载中…</span></div>
+    </div>
+  </div>
+
+  <div class="grid cols2" style="margin-top:16px">
+    <!-- 推荐 -->
+    <div class="card">
+      <h2>智能推荐</h2>
+      <div class="row" style="margin-bottom:12px">
+        <label class="chk">时间
+          <select id="mood" hidden></select>
+          <select id="time">
+            <option value="不限">不限</option>
+            <option value="30m">30 分钟</option>
+            <option value="1h">1 小时</option>
+            <option value="2h">2 小时</option>
+          </select>
+        </label>
+        <label class="chk">心情
+          <select id="moodSel">
+            <option value="随便">随便</option>
+            <option value="轻松">轻松</option>
+            <option value="挑战">挑战</option>
+            <option value="沉浸">沉浸</option>
+          </select>
+        </label>
+        <label class="chk">类型
+          <input id="genre" placeholder="不限" style="width:120px">
+        </label>
+        <button class="btn" id="btnRec">推荐</button>
+      </div>
+      <div class="list" id="rec"></div>
+    </div>
+    <!-- 人格 -->
+    <div class="card">
+      <h2>游戏人格</h2>
+      <div id="persona" class="stack"><span class="muted">加载中…</span></div>
+    </div>
+  </div>
+
+  <div class="grid cols2" style="margin-top:16px">
+    <!-- 性价比 -->
+    <div class="card">
+      <h2>性价比榜</h2>
+      <div id="value" class="stack"><span class="muted">加载中…</span></div>
+    </div>
+    <!-- 族谱 -->
+    <div class="card">
+      <h2>游戏族谱</h2>
+      <div id="series" class="stack"><span class="muted">加载中…</span></div>
+    </div>
+  </div>
+
+  <div class="grid cols2" style="margin-top:16px">
+    <!-- 愿望单 -->
+    <div class="card">
+      <h2>反向愿望单</h2>
+      <div id="wishlist" class="stack"><span class="muted">加载中…</span></div>
+    </div>
+    <!-- 成就雷达 -->
+    <div class="card">
+      <h2>成就冲刺雷达</h2>
+      <div id="radar" class="stack"><span class="muted">加载中…</span></div>
+    </div>
+  </div>
+
+  <!-- 动作区 -->
+  <div class="card" style="margin-top:16px">
+    <h2>操作</h2>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="dryRun" checked> 只预览（dry-run，推荐）</label>
+      <button class="btn primary" id="btnRun">执行分类扫描 run</button>
+      <button class="btn" id="btnWriteback">分类写回 Steam：关闭</button>
+      <button class="btn" id="btnBackfill">回填历史快照（先预览）</button>
+      <button class="btn" id="btnConfig">查看规则配置</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnLocalize">抓取中文名与封面</button>
+      <label class="chk">范围
+        <select id="localizeScope">
+          <option value="both">中文名 + 封面</option>
+          <option value="names">只抓中文名</option>
+          <option value="covers">只抓封面</option>
+        </select>
+      </label>
+      <label class="chk">每批
+        <select id="localizeLimit">
+          <option value="20">20 款（快）</option>
+          <option value="50">50 款</option>
+          <option value="150">150 款（慢）</option>
+        </select>
+      </label>
+      <span class="pill" id="localizeHint">离线优先：先读本机 Steam 缓存，缺的再去官方商店补</span>
+    </div>
+    <div class="hint" id="writebackHint">写回会把状态标签写进 Steam 分类；Steam 正在运行时会被安全拦截。</div>
+    <pre class="log" id="log" style="margin-top:12px">（操作输出会显示在这里）</pre>
+  </div>
+
+  <!-- 配置 -->
+  <div class="card hidden" id="configCard" style="margin-top:16px">
+    <h2>规则配置 <span class="tag" id="configPath">-</span></h2>
+    <pre class="log" id="configOut"></pre>
+  </div>
+
+  <!-- 可视化页面 -->
+  <div class="card" style="margin-top:16px">
+    <h2>可视化页面 <span class="tag">6 张</span></h2>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn" id="btnPages">生成 / 刷新全部页面</button>
+      <span class="pill" id="pagesInfo">尚未生成</span>
+    </div>
+    <div class="frames" id="frames"></div>
+  </div>
+
+  <!-- 游戏列表 -->
+  <div class="card" style="margin-top:16px">
+    <h2>游戏明细 <span class="tag" id="gamesCount">-</span>
+      <span class="tag" id="coverage">-</span></h2>
+    <!-- 家庭共享提示（只做说明，不改上面任何统计数字）：
+         「共享但玩过」已正常计入统计；勾选框只列「共享且未玩过、被剔除」的灰显行 -->
+    <div class="row" style="margin-bottom:8px">
+      <span class="hint" id="sharedNotice" style="margin:0"></span>
+      <label class="chk" id="sharedToggleWrap" style="display:none">
+        <input type="checkbox" id="showShared"> 显示家庭共享（未玩过，<span id="sharedCount">0</span>）</label>
+    </div>
+    <div class="game-grid" id="games"></div>
+  </div>
+
+  <!-- 日志入口：只显示路径，点按钮才读内容 -->
+  <div class="row logbar">
+    <span class="hint" style="margin:0">日志文件：<code id="logPath">读取中…</code></span>
+    <button class="btn" id="btnLog">查看最近日志</button>
+  </div>
+
+</div>
+<!-- 添加账号弹窗 -->
+<div class="modal hidden" id="addModal">
+  <div class="modal-box">
+    <header class="modal-head">
+      <b>添加账号</b>
+      <button class="btn" id="btnAddClose">关闭</button>
+    </header>
+    <div class="hint" style="margin-top:0">
+      勾选要加入面板的账号。这里只<b>只读</b>本机 <code>userdata</code> 目录，不会改动或删除 Steam 的任何文件。
+    </div>
+    <div class="list" id="addList" style="margin-top:10px;max-height:320px;overflow:auto"></div>
+    <div class="row" style="margin-top:12px;justify-content:flex-end">
+      <span class="pill" id="addHint"></span>
+      <button class="btn primary" id="btnAddConfirm">添加所选</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日志弹窗：只读展示最近若干行 -->
+<div class="modal hidden" id="logModal">
+  <div class="modal-box wide">
+    <header class="modal-head">
+      <b>运行日志 <span class="tag" id="logTailTag">最近 200 行</span></b>
+      <button class="btn" id="btnLogClose">关闭</button>
+    </header>
+    <div class="hint" id="logFile" style="margin-top:0;word-break:break-all">-</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnLogReload">重新读取</button>
+      <span class="pill" id="logHint"></span>
+    </div>
+    <pre class="log" id="logBody" style="max-height:56vh">点「查看最近日志」加载…</pre>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}{{ payload.user_name }} · 游戏星图 · GameLife{% endblock %}
+
+{% block styles %}{% autoescape false %}
+/* ===== 游戏星图 ===== */
+
+.map-cover { position: relative; text-align: center; padding: 96px 0 40px; overflow: hidden; }
+.map-cover::before {
+  content: ""; position: absolute; width: 620px; height: 620px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(88,166,255,.16), transparent 62%);
+  top: -260px; left: 50%; transform: translateX(-50%); z-index: -1;
+}
+.map-kicker {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--text-secondary); font-size: .82rem; font-weight: 700; letter-spacing: .32em;
+}
+.map-title { font-size: clamp(2.4rem, 6.5vw, 4.4rem); margin-top: 16px; }
+.map-sub { color: var(--text-secondary); margin-top: 14px; font-size: 1.05rem; }
+
+/* 画布容器 */
+.map-shell {
+  position: relative; margin-top: 34px; padding: 0; overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+.starmap-canvas {
+  display: block; width: 100%; height: clamp(440px, 64vh, 720px);
+  cursor: grab; touch-action: none; background: #080b12;
+}
+.starmap-canvas.dragging { cursor: grabbing; }
+
+/* 悬停详情卡片：小封面 + 文字横向排布，卡片整体更矮更小，便于完整放下 */
+.star-tooltip {
+  position: absolute; z-index: 5; pointer-events: none; opacity: 0;
+  display: flex; align-items: flex-start; gap: 10px;
+  width: max-content; max-width: 264px; padding: 10px 12px;
+  background: rgba(22, 27, 34, .96); border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); box-shadow: 0 10px 26px rgba(0, 0, 0, .55);
+  backdrop-filter: blur(6px);
+  transition: opacity .12s ease;
+}
+.star-tooltip.show { opacity: 1; }
+/* tooltip 左侧的小封面 / 占位块：固定 92x123，竖版铺满、横版留边不裁切 */
+.tt-thumb { flex: 0 0 auto; width: 92px; }
+.tt-cover {
+  display: block; width: 92px; aspect-ratio: 3 / 4; margin: 0;
+  border-radius: 10px; object-fit: cover; background: var(--bg-elevated);
+}
+.tt-cover.is-landscape { object-fit: contain; }
+.tt-cover.gl-cover-ph { display: grid; }
+.tt-cover.gl-cover-ph span { font-size: .95rem; color: var(--text-muted); }
+.tt-body { flex: 1 1 auto; min-width: 0; }
+.tt-name { font-weight: 800; font-size: .95rem; line-height: 1.35; overflow-wrap: anywhere; }
+.tt-meta { display: flex; align-items: center; gap: 7px; margin-top: 6px; color: var(--text-secondary); font-size: .82rem; }
+.tt-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.tt-hours { margin-top: 6px; font-weight: 800; color: var(--accent-green); font-size: .9rem; }
+
+/* 控制栏 */
+.map-controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  margin-top: 18px; padding: 14px 18px;
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);
+}
+.ctl-group { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: .85rem; }
+.ctl-btn {
+  padding: 6px 14px; font-size: .82rem; font-weight: 700; color: var(--text-primary);
+  background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 999px;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.ctl-btn:hover { border-color: rgba(88,166,255,.45); color: var(--accent-blue); }
+.ctl-switch { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.ctl-switch input { accent-color: var(--accent-blue); width: 15px; height: 15px; cursor: pointer; }
+.ctl-hint { margin-left: auto; color: var(--text-muted); font-size: .78rem; }
+
+/* 类型图例 */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.legend-item {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px;
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 999px;
+  font-size: .84rem; font-weight: 600; color: var(--text-primary); cursor: pointer;
+  transition: opacity .18s, border-color .18s, transform .18s;
+}
+.legend-item:hover { border-color: rgba(88,166,255,.4); transform: translateY(-1px); }
+.legend-item.off { opacity: .32; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.legend-count { color: var(--text-muted); font-size: .78rem; }
+
+/* 星辰图鉴：最亮的星配封面 */
+.star-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 14px; margin-top: 22px; }
+.star-card { padding: 10px 10px 12px; }
+.star-card .sc-cover { aspect-ratio: 3 / 4; margin: 0 auto 10px; max-width: 170px; }
+.star-card .sc-cover.gl-cover-ph span { font-size: 1.15rem; color: var(--text-muted); }
+.star-card .sc-name { font-weight: 700; font-size: .92rem; line-height: 1.35; }
+.star-card .sc-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.star-card .sc-hours { color: var(--accent-green); font-weight: 800; font-size: .86rem; }
+.star-card .sc-genre { color: var(--text-muted); font-size: .76rem; }
+
+/* 状态说明 */
+.state-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; }
+.state-item { display: flex; align-items: center; gap: 9px; color: var(--text-secondary); font-size: .84rem; }
+.state-glyph { width: 18px; height: 18px; flex: none; display: grid; place-items: center; }
+.g-dot { border-radius: 50%; background: #e6edf3; }
+.g-flicker { border-radius: 50%; background: #e6edf3; animation: gl-twinkle 1.6s ease-in-out infinite; }
+.g-dust { border-radius: 50%; background: rgba(230,237,243,.30); }
+@keyframes gl-twinkle { 0%, 100% { opacity: .32; } 50% { opacity: 1; } }
+
+@media (max-width: 700px) {
+  .ctl-hint { margin-left: 0; }
+  .starmap-canvas { height: 62vh; }
+}
+{% endautoescape %}{% endblock %}
+
+{% block content %}
+<script id="report-data" type="application/json">{{ payload | tojson }}</script>
+<main class="gl-page">
+
+  <section class="map-cover gl-animate">
+    <div class="map-kicker"><span class="kicker-dot"></span>GAMELIFE 星图</div>
+    <h1 class="map-title gradient-text">游戏星图</h1>
+    <p class="map-sub">
+      <b>{{ payload.user_name }}</b> 的 {{ payload.stats.total_games }} 款游戏，
+      汇聚成 {{ payload.stats.genre_count }} 个星团
+    </p>
+  </section>
+
+  <div class="stat-grid">
+    <div class="stat-card gl-card gl-card-hover gl-animate">
+      <div class="stat-label">星辰总数</div>
+      <div class="stat-value gradient-text tnum">{{ payload.stats.total_games }}</div>
+      <div class="stat-note">款游戏</div>
+    </div>
+    <div class="stat-card gl-card gl-card-hover gl-animate">
+      <div class="stat-label">总游玩时长</div>
+      <div class="stat-value gradient-text tnum">{{ payload.stats.total_hours | h }}<small>h</small></div>
+      <div class="stat-note">最亮的一颗 {{ payload.stats.max_playtime | h }}h</div>
+    </div>
+    <div class="stat-card gl-card gl-card-hover gl-animate">
+      <div class="stat-label">类型星团</div>
+      <div class="stat-value gradient-text tnum">{{ payload.stats.genre_count }}</div>
+      <div class="stat-note">个类型分区</div>
+    </div>
+    <div class="stat-card gl-card gl-card-hover gl-animate">
+      <div class="stat-label">状态分布</div>
+      <div class="stat-note" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">
+        <span class="badge">在玩 {{ payload.stats.playing }}</span>
+        <span class="badge">搁置 {{ payload.stats.shelved }}</span>
+        <span class="badge">未玩 {{ payload.stats.unplayed }}</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="gl-section" id="map">
+    <div class="gl-section-head">
+      <span class="gl-section-index">01</span>
+      <h2 class="gl-section-title">星图</h2>
+      <span class="gl-section-sub">滚轮缩放 · 拖拽平移 · 悬停查看</span>
+    </div>
+
+    <div class="map-shell gl-card" id="star-shell">
+      <canvas id="starmap-canvas" class="starmap-canvas" aria-label="游戏星图"></canvas>
+      <div class="star-tooltip" id="star-tooltip">
+        <div class="tt-thumb">
+          <img class="tt-cover" id="tt-cover-img" alt="" style="display:none;">
+          <div class="tt-cover gl-cover-ph" id="tt-cover-ph" style="display:none;"><span id="tt-cover-letter"></span></div>
+        </div>
+        <div class="tt-body">
+          <div class="tt-name"></div>
+          <div class="tt-meta"><span class="tt-dot"></span><span class="tt-genre"></span></div>
+          <div class="tt-hours"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-controls">
+      <button class="ctl-btn" id="btn-reset">重置视角</button>
+      <label class="ctl-switch"><input type="checkbox" id="chk-dust" checked> 显示未玩尘埃</label>
+      <button class="ctl-btn" id="btn-all">全部类型</button>
+      <span class="ctl-hint">点击下方图例可筛选 / 隐藏类型</span>
+    </div>
+
+    <div class="legend" id="legend">
+      {% for g in payload.genres %}
+      <span class="legend-item" data-genre="{{ g.name }}">
+        <span class="legend-dot" style="background: {{ g.color }};"></span>{{ g.name }}
+        <span class="legend-count">{{ g.count }} 款 · {{ g.hours | h }}h</span>
+      </span>
+      {% endfor %}
+    </div>
+
+    <div class="state-legend">
+      <span class="state-item"><span class="state-glyph"><span class="g-dot" style="width:14px;height:14px;"></span></span>在玩 = 大星</span>
+      <span class="state-item"><span class="state-glyph"><span class="g-flicker" style="width:10px;height:10px;"></span></span>搁置 = 闪烁</span>
+      <span class="state-item"><span class="state-glyph"><span class="g-dust" style="width:6px;height:6px;"></span></span>未玩 = 尘埃</span>
+    </div>
+  </section>
+
+  <!-- 02 星辰图鉴 -->
+  {% if payload.stars %}
+  <section class="gl-section" id="gallery">
+    <div class="gl-section-head">
+      <span class="gl-section-index">02</span>
+      <h2 class="gl-section-title">星辰图鉴</h2>
+      <span class="gl-section-sub">最亮的 {{ [payload.stars|length, 12] | min }} 颗星 · 按游玩时长</span>
+    </div>
+    <div class="star-gallery">
+      {% for s in payload.stars | sort(attribute="playtime", reverse=true) %}
+      {% if loop.index <= 12 %}
+      <div class="star-card gl-card gl-card-hover">
+        {% if s.cover %}
+        <div class="sc-cover gl-cover"><img src="{{ s.cover }}" alt="{{ s.name }}" loading="lazy" class="{{ 'is-landscape' if s.cover_kind == 'landscape' else '' }}"></div>
+        {% else %}
+        <div class="sc-cover gl-cover-ph"><span>{{ s.name[:1] }}</span></div>
+        {% endif %}
+        <div class="sc-name">{{ s.name }}</div>
+        <div class="sc-meta">
+          <span class="sc-hours tnum">{{ s.hours }}h</span>
+          <span class="sc-genre">{{ s.genre }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</main>
+
+<footer class="gl-footer">
+  <div class="glogo">GAMELIFE · 游戏人生</div>
+  <p>由 GameLife 为你生成 · {{ payload.generated_at }}</p>
+  <p>星星大小 = 游玩时长 · 颜色与位置 = 游戏类型</p>
+</footer>
+{% endblock %}
+
+{% block scripts %}{% autoescape false %}
+(function () {
+  "use strict";
+
+  var payload = {};
+  try {
+    payload = JSON.parse(document.getElementById("report-data").textContent);
+  } catch (err) {
+    payload = { stars: [], genres: [], stats: {} };
+  }
+
+  var canvas = document.getElementById("starmap-canvas");
+  var shell = document.getElementById("star-shell");
+  var tip = document.getElementById("star-tooltip");
+  var ctx = canvas.getContext("2d");
+
+  var MAX_P = Math.max(1, payload.stats.max_playtime || 1);
+  var STATE_ALPHA = { playing: 1.0, shelved: 0.62, unplayed: 0.17 };
+  var HEAVY = (payload.stars || []).length > 700;
+
+  function radiusFor(s) {
+    if (s.status === "unplayed" || s.playtime <= 0) return 1.5;
+    var base = 2.4 + 13.5 * Math.sqrt(Math.min(1, s.playtime / MAX_P));
+    if (s.status === "playing") base *= 1.22;
+    return base;
+  }
+
+  var stars = (payload.stars || []).map(function (s, i) {
+    return {
+      appid: s.appid, name: s.name, genre: s.genre, status: s.status,
+      statusLabel: s.status_label, hours: s.hours, playtime: s.playtime,
+      color: s.color, x: s.x, y: s.y, cover: s.cover || "",
+      coverKind: s.cover_kind || "unknown",
+      r: radiusFor(s),
+      phase: (i % 13) * 0.48
+    };
+  });
+
+  var hiddenGenres = {};
+  var showDust = true;
+  var view = { x: 0, y: 0, scale: 1 };
+  var mouse = { x: -999, y: -999, inside: false };
+  var dragging = false;
+  var last = { x: 0, y: 0 };
+  var hovered = null;
+
+  /* 背景星尘（装饰用，一次性生成 + 缓慢视差） */
+  var bg = [];
+  for (var bi = 0; bi < 260; bi++) {
+    bg.push({
+      x: Math.random(), y: Math.random(),
+      r: Math.random() * 1.25 + 0.25,
+      a: Math.random() * 0.5 + 0.12,
+      ph: Math.random() * 6.283
+    });
+  }
+
+  var colorCache = {};
+  function hexA(hex, a) {
+    var key = hex + "|" + a.toFixed(3);
+    if (colorCache[key]) return colorCache[key];
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+    var out = "rgba(" + r + "," + g + "," + b + "," + a.toFixed(3) + ")";
+    colorCache[key] = out;
+    return out;
+  }
+
+  function sizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.clientWidth || 1;
+    var h = canvas.clientHeight || 1;
+    var tw = Math.round(w * dpr);
+    var th = Math.round(h * dpr);
+    if (canvas.width !== tw || canvas.height !== th) {
+      canvas.width = tw;
+      canvas.height = th;
+    }
+    return { w: w, h: h, dpr: dpr };
+  }
+
+  function worldToScreen(x, y, w, h, worldR) {
+    return [
+      w / 2 + (x * worldR - view.x) * view.scale,
+      h / 2 + (y * worldR - view.y) * view.scale
+    ];
+  }
+
+  /* tooltip 定位：优先星星右侧，放不下翻到左侧，再按卡片实际尺寸夹进画布，保证完整可见 */
+  function placeTooltip(px, py, r) {
+    var pad = 10;
+    var sw = shell.clientWidth;
+    var sh = shell.clientHeight;
+    var tw = tip.offsetWidth;
+    var th = tip.offsetHeight;
+    var maxLeft = Math.max(pad, sw - tw - pad);
+    var left = px + r + 14;
+    if (left > maxLeft) {
+      var flipped = px - r - 14 - tw;
+      left = flipped >= pad ? flipped : maxLeft;
+    }
+    left = Math.max(pad, Math.min(maxLeft, left));
+    var maxTop = Math.max(pad, sh - th - pad);
+    var top = Math.max(pad, Math.min(maxTop, py - th / 2));
+    tip.style.left = Math.round(left) + "px";
+    tip.style.top = Math.round(top) + "px";
+  }
+
+  function updateTooltip() {
+    if (!hovered) {
+      tip.classList.remove("show");
+      return;
+    }
+    var s = hovered.s;
+    var img = document.getElementById("tt-cover-img");
+    var ph = document.getElementById("tt-cover-ph");
+    if (s.cover) {
+      img.src = s.cover;
+      img.alt = s.name;
+      img.style.display = "block";
+      img.classList.toggle("is-landscape", s.coverKind === "landscape");
+      ph.style.display = "none";
+    } else {
+      img.style.display = "none";
+      img.removeAttribute("src");
+      img.src = "";
+      ph.style.display = "grid";
+      document.getElementById("tt-cover-letter").textContent = (s.name || "?").slice(0, 1);
+    }
+    tip.querySelector(".tt-name").textContent = s.name;
+    tip.querySelector(".tt-genre").textContent = s.genre + " · " + s.statusLabel;
+    tip.querySelector(".tt-dot").style.background = s.color;
+    tip.querySelector(".tt-hours").textContent = s.playtime > 0 ? s.hours + " 小时" : "尚未启动";
+    tip.classList.add("show");
+    placeTooltip(hovered.px, hovered.py, hovered.r);
+  }
+
+  function draw(t) {
+    var dims = sizeCanvas();
+    var w = dims.w, h = dims.h, dpr = dims.dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var worldR = Math.min(w, h) / 2 * 0.86;
+
+    /* 背景星尘：轻微视差 + 呼吸闪烁 */
+    for (var b = 0; b < bg.length; b++) {
+      var st = bg[b];
+      var bx = st.x * w - view.x * view.scale * 0.25;
+      var by = st.y * h - view.y * view.scale * 0.25;
+      bx = ((bx % w) + w) % w;
+      by = ((by % h) + h) % h;
+      ctx.globalAlpha = st.a * (0.72 + 0.28 * Math.sin(t / 900 + st.ph));
+      ctx.fillStyle = "#9fb4d0";
+      ctx.beginPath();
+      ctx.arc(bx, by, st.r, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    var bestDist = 1e9;
+    var hover = null;
+
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      if (hiddenGenres[s.genre]) continue;
+      if (s.status === "unplayed" && !showDust) continue;
+
+      var p = worldToScreen(s.x, s.y, w, h, worldR);
+      var r = s.r * Math.max(0.5, Math.min(1.7, view.scale));
+      if (p[0] < -60 || p[0] > w + 60 || p[1] < -60 || p[1] > h + 60) continue;
+
+      var alpha = STATE_ALPHA[s.status] || 0.8;
+      if (s.status === "shelved") {
+        alpha = 0.34 + 0.4 * (0.5 + 0.5 * Math.sin(t / 620 + s.phase));
+      }
+
+      /* 光晕（尘埃与小星略过，保证性能） */
+      if (!HEAVY && s.status !== "unplayed" && r > 3) {
+        var glow = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], r * 3.4);
+        glow.addColorStop(0, hexA(s.color, alpha * 0.42));
+        glow.addColorStop(1, hexA(s.color, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(p[0], p[1], r * 3.4, 0, 6.2832);
+        ctx.fill();
+      }
+
+      /* 星体 */
+      ctx.fillStyle = hexA(s.color, alpha);
+      ctx.beginPath();
+      ctx.arc(p[0], p[1], r, 0, 6.2832);
+      ctx.fill();
+
+      /* 高光核心 */
+      if (r > 2.5) {
+        ctx.fillStyle = hexA("#ffffff", Math.min(0.8, alpha * 0.7));
+        ctx.beginPath();
+        ctx.arc(p[0] - r * 0.24, p[1] - r * 0.24, r * 0.4, 0, 6.2832);
+        ctx.fill();
+      }
+
+      /* 悬停命中检测（取最近的一颗） */
+      if (mouse.inside) {
+        var dx = mouse.x - p[0];
+        var dy = mouse.y - p[1];
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d <= Math.max(r + 7, 10) && d < bestDist) {
+          bestDist = d;
+          hover = { s: s, px: p[0], py: p[1], r: r };
+        }
+      }
+    }
+
+    if (hover) {
+      ctx.strokeStyle = "rgba(230,237,243,0.85)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(hover.px, hover.py, hover.r + 6, 0, 6.2832);
+      ctx.stroke();
+    }
+    hovered = hover;
+    updateTooltip();
+
+    requestAnimationFrame(draw);
+  }
+
+  /* ---------------- 交互 ---------------- */
+  canvas.addEventListener("pointermove", function (e) {
+    var rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+    mouse.inside = true;
+    if (dragging) {
+      var dx = e.clientX - last.x;
+      var dy = e.clientY - last.y;
+      view.x -= dx / view.scale;
+      view.y -= dy / view.scale;
+      last.x = e.clientX;
+      last.y = e.clientY;
+    }
+  });
+
+  canvas.addEventListener("pointerleave", function () {
+    mouse.inside = false;
+    mouse.x = -999;
+    mouse.y = -999;
+  });
+
+  canvas.addEventListener("pointerdown", function (e) {
+    dragging = true;
+    last.x = e.clientX;
+    last.y = e.clientY;
+    canvas.classList.add("dragging");
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+  });
+
+  canvas.addEventListener("pointerup", function (e) {
+    dragging = false;
+    canvas.classList.remove("dragging");
+    if (canvas.releasePointerCapture) {
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+  });
+
+  canvas.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    var rect = canvas.getBoundingClientRect();
+    var mx = e.clientX - rect.left;
+    var my = e.clientY - rect.top;
+    var w = canvas.clientWidth;
+    var h = canvas.clientHeight;
+    var cx = w / 2, cy = h / 2;
+    var worldR = Math.min(w, h) / 2 * 0.86;
+
+    var factor = Math.pow(1.0016, -e.deltaY);
+    var next = Math.max(0.45, Math.min(6, view.scale * factor));
+    if (next === view.scale) return;
+
+    /* 以鼠标位置为中心缩放：保证光标下的世界坐标不动 */
+    var wx = ((mx - cx) / view.scale + view.x) / worldR;
+    var wy = ((my - cy) / view.scale + view.y) / worldR;
+    view.scale = next;
+    view.x = wx * worldR - (mx - cx) / view.scale;
+    view.y = wy * worldR - (my - cy) / view.scale;
+  }, { passive: false });
+
+  var legend = document.getElementById("legend");
+  legend.addEventListener("click", function (e) {
+    var item = e.target.closest(".legend-item");
+    if (!item) return;
+    var genre = item.getAttribute("data-genre");
+    hiddenGenres[genre] = !hiddenGenres[genre];
+    item.classList.toggle("off", !!hiddenGenres[genre]);
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", function () {
+    view.x = 0;
+    view.y = 0;
+    view.scale = 1;
+  });
+
+  document.getElementById("btn-all").addEventListener("click", function () {
+    hiddenGenres = {};
+    Array.prototype.forEach.call(legend.querySelectorAll(".legend-item"), function (el) {
+      el.classList.remove("off");
+    });
+  });
+
+  document.getElementById("chk-dust").addEventListener("change", function (e) {
+    showDust = e.target.checked;
+  });
+
+  requestAnimationFrame(draw);
+})();
+{% endautoescape %}{% endblock %}

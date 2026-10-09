@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "purpose": "Steam 官方类型（genre）ID -> 名称对照表。ID 与官方 appdetails 接口的 genres[].id 同源。",
+    "authority": "① Valve 官方商店 API appdetails（store.steampowered.com / store.steamchina.com）逐款实测；② 本机 Steam 客户端官方本地化 shared_schinese-json.js 的 Sale_default_label_35..44 （官方 ID 顺序表：35..44 => Action/Adventure/Casual/Indie/MMO/Racing/RPG/Simulation/Sports/Strategy）；③ 与本机 appinfo.vdf 中该 ID 对应作品的类型交叉验证。",
+    "notes": "旧实现把 4/23 互换、9/18/25/28/29 记错，且 50-60 段整段缺失或错位，导致出现「类型 29」这类占位。本表为修正后的权威值。",
+    "software_ids": [
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60
+    ],
+    "updated": "2026-09-23"
+  },
+  "1": {
+    "en": "Action",
+    "cn": "动作"
+  },
+  "2": {
+    "en": "Strategy",
+    "cn": "策略"
+  },
+  "3": {
+    "en": "RPG",
+    "cn": "角色扮演"
+  },
+  "4": {
+    "en": "Casual",
+    "cn": "休闲"
+  },
+  "9": {
+    "en": "Racing",
+    "cn": "竞速"
+  },
+  "18": {
+    "en": "Sports",
+    "cn": "体育"
+  },
+  "23": {
+    "en": "Indie",
+    "cn": "独立"
+  },
+  "25": {
+    "en": "Adventure",
+    "cn": "冒险"
+  },
+  "28": {
+    "en": "Simulation",
+    "cn": "模拟"
+  },
+  "29": {
+    "en": "Massively Multiplayer",
+    "cn": "大型多人在线"
+  },
+  "37": {
+    "en": "Free to Play",
+    "cn": "免费开玩"
+  },
+  "50": {
+    "en": "Accounting",
+    "cn": "会计"
+  },
+  "51": {
+    "en": "Animation & Modeling",
+    "cn": "动画制作和建模"
+  },
+  "52": {
+    "en": "Audio Production",
+    "cn": "音频制作"
+  },
+  "53": {
+    "en": "Design & Illustration",
+    "cn": "设计和插画"
+  },
+  "54": {
+    "en": "Education",
+    "cn": "教育"
+  },
+  "55": {
+    "en": "Photo Editing",
+    "cn": "照片编辑"
+  },
+  "56": {
+    "en": "Software Training",
+    "cn": "软件培训"
+  },
+  "57": {
+    "en": "Utilities",
+    "cn": "实用工具"
+  },
+  "58": {
+    "en": "Video Production",
+    "cn": "视频制作"
+  },
+  "59": {
+    "en": "Web Publishing",
+    "cn": "网络出版"
+  },
+  "60": {
+    "en": "Game Development",
+    "cn": "游戏开发"
+  },
+  "70": {
+    "en": "Early Access",
+    "cn": "抢先体验"
+  }
+}

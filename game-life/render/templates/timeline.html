@@ -1,0 +1,162 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{{ payload.user_name }} · 游戏考古时间轴 · GameLife{% endblock %}
+
+{% block styles %}{% autoescape false %}
+/* ===== 游戏考古时间轴 ===== */
+.tl-cover { position: relative; text-align: center; padding: 110px 0 60px; overflow: hidden; }
+.tl-cover::before { content: ""; position: absolute; width: 460px; height: 460px; border-radius: 50%; filter: blur(90px); opacity: .4; z-index: -1; background: rgba(188,140,255,.30); top: -160px; right: -140px; }
+.tl-cover::after  { content: ""; position: absolute; width: 380px; height: 380px; border-radius: 50%; filter: blur(80px); opacity: .3; z-index: -1; background: rgba(88,166,255,.22); bottom: -170px; left: -120px; }
+.tl-emoji { font-size: 3.2rem; display: block; margin-bottom: 8px; }
+.tl-kicker { display: inline-flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: .82rem; font-weight: 700; letter-spacing: .32em; }
+.tl-title { font-size: clamp(2.4rem, 6.5vw, 4.4rem); margin-top: 16px; }
+.tl-sub { color: var(--text-secondary); font-size: 1.05rem; margin-top: 14px; }
+.tl-sub b { color: var(--accent-purple); }
+
+/* 图例 */
+.tl-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 30px; }
+.tl-legend .badge { display: inline-flex; align-items: center; gap: 6px; }
+
+/* 时间轴主体 */
+.tl-body { margin-top: 56px; }
+.tl-year { margin-bottom: 54px; }
+.tl-year-head { display: flex; align-items: center; gap: 18px; margin-bottom: 24px; }
+.tl-year-badge {
+  font-size: 2rem; font-weight: 900; letter-spacing: .06em; line-height: 1;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.tl-year-line { flex: 1; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(188,140,255,.5), transparent 85%); }
+
+.tl-month { display: flex; gap: 22px; margin-bottom: 12px; }
+.tl-month-label {
+  flex: none; width: 58px; padding-top: 16px; text-align: right;
+  font-size: 1.05rem; font-weight: 800; color: var(--text-secondary);
+}
+
+/* 事件列 */
+.tl-month-events { position: relative; flex: 1; max-width: 760px; padding-left: 28px; }
+.tl-month-events::before {
+  content: ""; position: absolute; left: 8px; top: 20px; bottom: 10px;
+  width: 2px; background: rgba(230,237,243,.08);
+}
+.tl-event { position: relative; padding: 8px 0; }
+.tl-event-dot {
+  position: absolute; left: -22px; top: 20px; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--text-muted); border: 3px solid var(--bg-primary);
+}
+.ev-started  .tl-event-dot { background: var(--accent-green);  box-shadow: 0 0 0 3px rgba(63,185,80,.16); }
+.ev-played   .tl-event-dot { background: var(--accent-blue);   box-shadow: 0 0 0 3px rgba(88,166,255,.16); }
+.ev-purchased.tl-event-dot { background: var(--accent-purple); box-shadow: 0 0 0 3px rgba(188,140,255,.16); }
+.ev-shelved   .tl-event-dot { background: var(--accent-red);   box-shadow: 0 0 0 3px rgba(248,81,73,.14); }
+
+.tl-event-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 18px; background: var(--bg-card);
+  border: 1px solid var(--border-color); border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  transition: transform .2s ease, border-color .2s ease;
+}
+.tl-event-card:hover { transform: translateY(-2px); }
+.ev-started  .tl-event-card { border-left: 3px solid var(--accent-green); }
+.ev-played   .tl-event-card { border-left: 3px solid var(--accent-blue); }
+.ev-purchased.tl-event-card { border-left: 3px solid var(--accent-purple); }
+.ev-shelved   .tl-event-card { border-left: 3px solid var(--accent-red); }
+.tl-event-body { flex: 1; min-width: 0; }
+
+/* 事件缩略图 / 占位块 */
+.tl-thumb { flex: none; width: 84px; aspect-ratio: 3 / 4; }
+.tl-thumb.gl-cover-ph span { font-size: 1.05rem; color: var(--text-muted); }
+
+.tl-event-date { font-size: .74rem; color: var(--text-muted); letter-spacing: .08em; }
+.tl-event-text { font-size: 1.02rem; font-weight: 600; margin-top: 4px; }
+.tl-event-meta { margin-top: 8px; }
+.tl-event-meta .badge { background: var(--bg-elevated); }
+
+@media (max-width: 640px) {
+  .tl-month { flex-direction: column; gap: 4px; }
+  .tl-month-label { width: auto; text-align: left; padding-top: 4px; }
+}
+{% endautoescape %}{% endblock %}
+
+{% block content %}
+<main class="gl-page">
+
+  <section class="tl-cover gl-animate">
+    <span class="tl-emoji">⏳</span>
+    <div class="tl-kicker">GAMELIFE ARCHAEOLOGY</div>
+    <h1 class="tl-title gradient-text">游戏考古时间轴</h1>
+    <p class="tl-sub">
+      <b class="tnum">{{ payload.stats.total }}</b> 条考古记录 ·
+      跨越 <b class="tnum">{{ payload.stats.years }}</b> 个年头 ·
+      涉及 <b class="tnum">{{ payload.stats.games }}</b> 款游戏
+    </p>
+    <div class="tl-legend">
+      <span class="badge">▶ 开始游玩</span>
+      <span class="badge">⏱ 持续游玩</span>
+      <span class="badge">🛒 购买</span>
+      <span class="badge">🕸 搁置</span>
+    </div>
+  </section>
+
+  {% if payload.year_groups %}
+  <section class="gl-section">
+    <div class="gl-section-head">
+      <span class="gl-section-index">Ⅶ</span>
+      <h2 class="gl-section-title">考古记录</h2>
+      <span class="gl-section-sub">数据截至 {{ payload.generated_at }} · 按月倒序</span>
+    </div>
+
+    <div class="tl-body">
+      {% for year in payload.year_groups %}
+      <div class="tl-year" id="year-{{ year.year }}">
+        <div class="tl-year-head">
+          <span class="tl-year-badge tnum">{{ year.year }}</span>
+          <div class="tl-year-line"></div>
+        </div>
+        {% for month in year.month_groups %}
+        <div class="tl-month">
+          <div class="tl-month-label tnum">{{ month.month }}</div>
+          <div class="tl-month-events">
+            {% for ev in month.events %}
+            <div class="tl-event {{ ev.cls }}">
+              <div class="tl-event-dot"></div>
+              <div class="tl-event-card gl-card-hover">
+                {% if ev.cover %}
+                <div class="tl-thumb gl-cover"><img src="{{ ev.cover }}" alt="{{ ev.name }}" loading="lazy" class="{{ 'is-landscape' if ev.cover_kind == 'landscape' else '' }}"></div>
+                {% else %}
+                <div class="tl-thumb gl-cover-ph"><span>{{ ev.name[:1] }}</span></div>
+                {% endif %}
+                <div class="tl-event-body">
+                  <div class="tl-event-date tnum">{{ ev.date }}</div>
+                  <div class="tl-event-text">{{ ev.text }}</div>
+                  <div class="tl-event-meta"><span class="badge">{{ ev.icon }} {{ ev.label }}</span></div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <section class="gl-section">
+    <div class="gl-card" style="padding:70px 40px;text-align:center;">
+      <div class="tl-emoji">🕳</div>
+      <p style="color:var(--text-secondary);">时间轴空空如也 —— 还没有可考古的游玩记录。</p>
+    </div>
+  </section>
+  {% endif %}
+
+</main>
+
+<footer class="gl-footer">
+  <div class="glogo">GAMELIFE · 游戏人生</div>
+  <p>由 GameLife 为你生成 · {{ payload.generated_at }}</p>
+  <p>每一次运行，都在为这片遗迹添砖加瓦</p>
+</footer>
+{% endblock %}

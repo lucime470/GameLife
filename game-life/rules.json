@@ -1,0 +1,227 @@
+{
+  "_comment": "GameLife 用户可配置规则文件。所有下划线开头的键（如 _comment）均为说明元数据，代码读取时应忽略。请勿删除本说明键，其余键可按需修改默认值。",
+  "playtime": {
+    "_comment": "状态判定阈值（单位：分钟 / 天 / 比例），供状态引擎 classifier.py 使用，stats.py 在无状态数据时也用它兜底。addicted_min=3000 分钟即 50 小时。",
+    "addicted_min": 3000,
+    "recent_days": 30,
+    "hltb_ratio": 0.8
+  },
+  "stats": {
+    "_comment": "统计看板参数（engine/stats.py）。top_n 控制各榜单条数；playtime_buckets 为游玩时长分布分桶（分钟，含边界，max_minutes 为 null 表示无上限）。",
+    "top_n": {
+      "genres": 10,
+      "developers": 10,
+      "oldest": 10,
+      "recent": 10
+    },
+    "playtime_buckets": [
+      {
+        "label": "未玩",
+        "min_minutes": 0,
+        "max_minutes": 0
+      },
+      {
+        "label": "1-10小时",
+        "min_minutes": 1,
+        "max_minutes": 600
+      },
+      {
+        "label": "10-50小时",
+        "min_minutes": 601,
+        "max_minutes": 3000
+      },
+      {
+        "label": "50-100小时",
+        "min_minutes": 3001,
+        "max_minutes": 6000
+      },
+      {
+        "label": "100小时以上",
+        "min_minutes": 6001,
+        "max_minutes": null
+      }
+    ]
+  },
+  "recommender": {
+    "_comment": "推荐引擎参数（engine/recommender.py）。score 为基础打分权重；stale_days 为未玩多久算失去兴趣；exclude_appids 为固定排除的非游戏条目；session_minutes 为「类型 -> 典型单局时长（分钟）」表，HLTB 数据缺失时用它估算时长匹配；time_fit 为时长匹配公式；mood 为各心情的真实打分偏好（类型/标签/会话时长/投入度）。",
+    "top_k": 5,
+    "stale_days": 365,
+    "hltb_time_factor": 1.2,
+    "exclude_appids": [
+      7,
+      760,
+      241100
+    ],
+    "session_default_minutes": 60,
+    "session_minutes": {
+      "casual": 30,
+      "indie": 40,
+      "puzzle": 30,
+      "free to play": 45,
+      "action": 60,
+      "adventure": 75,
+      "simulation": 90,
+      "strategy": 90,
+      "rpg": 120,
+      "massively multiplayer": 120,
+      "software training": 20
+    },
+    "time_fit": {
+      "full_bonus": 2.0,
+      "partial_bonus": 0.8,
+      "partial_ratio": 1.5,
+      "over_ratio": 2.5,
+      "over_penalty": -1.5,
+      "filter_ratio": null
+    },
+    "mood": {
+      "轻松": {
+        "genre_bonus": {
+          "Casual": 1.6,
+          "Puzzle": 1.2,
+          "Indie": 0.8,
+          "Simulation": 0.4,
+          "Action": -0.4,
+          "RPG": -0.8,
+          "Massively Multiplayer": -1.2
+        },
+        "tag_bonus": {
+          "Relaxing": 0.6,
+          "Cute": 0.5
+        },
+        "session_pref": {
+          "mode": "short",
+          "threshold_minutes": 60,
+          "bonus": 1.2,
+          "penalty": -1.0
+        },
+        "playtime_penalty": {
+          "min_minutes": 3000,
+          "penalty": -1.0
+        }
+      },
+      "挑战": {
+        "genre_bonus": {
+          "Action": 1.6,
+          "Massively Multiplayer": 0.6,
+          "RPG": 0.5,
+          "Simulation": -0.6,
+          "Indie": -0.3,
+          "Casual": -1.0
+        },
+        "hard_tag_bonus": 1.5,
+        "session_pref": {
+          "mode": "long",
+          "threshold_minutes": 60,
+          "bonus": 0.8,
+          "penalty": -0.8
+        },
+        "playtime_bonus": {
+          "min_minutes": 3000,
+          "bonus": 1.2
+        }
+      },
+      "沉浸": {
+        "genre_bonus": {
+          "RPG": 1.6,
+          "Adventure": 1.0,
+          "Strategy": 0.5,
+          "Massively Multiplayer": 0.4,
+          "Free to Play": -0.4,
+          "Casual": -0.8
+        },
+        "tag_bonus": {
+          "Story Rich": 1.4,
+          "Atmospheric": 0.8,
+          "Open World": 0.6
+        },
+        "session_pref": {
+          "mode": "long",
+          "threshold_minutes": 90,
+          "bonus": 0.9,
+          "penalty": -0.6
+        },
+        "hltb_bonus": {
+          "min_minutes": 1200,
+          "bonus": 0.8
+        }
+      }
+    },
+    "score": {
+      "playing": 2.0,
+      "shelved": 1.5,
+      "addicted": 0.6,
+      "genre_match": 3.0,
+      "stale_penalty": -1.0
+    }
+  },
+  "categories": {
+    "_comment": "写回 Steam 分类配置（状态引擎 steam_writer.py 使用）。status_names 为 5 种状态的显示名；genre_rules/tag_rules 为中文分类到 Steam 标签的映射。",
+    "include_status": true,
+    "status_names": {
+      "未玩": "未玩",
+      "在玩": "在玩",
+      "搁置": "搁置",
+      "沉迷": "沉迷",
+      "通关": "已通关"
+    },
+    "genre_rules": {
+      "动作": [
+        "Action",
+        "action"
+      ],
+      "角色扮演": [
+        "RPG",
+        "Role-playing"
+      ],
+      "独立游戏": [
+        "Indie"
+      ],
+      "策略": [
+        "Strategy"
+      ]
+    },
+    "tag_rules": {
+      "肉鸽": [
+        "Roguelike",
+        "Roguelite"
+      ],
+      "建造": [
+        "Building",
+        "Base-Building"
+      ],
+      "剧情": [
+        "Story Rich",
+        "Atmospheric"
+      ]
+    }
+  },
+  "ignore_tags": [
+    "Free to Play",
+    "Casual",
+    "Early Access"
+  ],
+  "challenge": {
+    "_comment": "清库挑战系统（engine/challenge.py）。XP 获取与等级称号配置。",
+    "xp": {
+      "complete": 100,
+      "monthly_challenge": 200,
+      "resume_shelved_per_hour": 5,
+      "streak_login": 10
+    },
+    "resume_shelved_bonus": 50,
+    "new_playing_bonus": 30,
+    "level_titles": {
+      "1-3": "库存清理学徒",
+      "4-7": "补票大师",
+      "8-14": "游戏收藏家",
+      "15-24": "全成就猎人",
+      "25+": "游戏人生传奇"
+    },
+    "monthly_challenge_options": [
+      "通关 2 款搁置游戏",
+      "玩满 10 小时搁置游戏"
+    ],
+    "monthly_challenge_game_count": 3
+  }
+}

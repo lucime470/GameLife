@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}{{ payload.user.name }} · {{ payload.user.year }} 年度游戏报告 · GameLife{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" onerror="window.__ECHARTS_FAILED = true;"></script>
+{% endblock %}
+
+{% block styles %}{% autoescape false %}
+/* ===== 年度报告专属样式（Spotify Wrapped 风格长图） ===== */
+
+/* 封面 */
+.cover { position: relative; text-align: center; padding: 148px 0 96px; overflow: hidden; }
+.cover::before, .cover::after {
+  content: ""; position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; z-index: -1;
+}
+.cover::before { width: 520px; height: 520px; background: rgba(88,166,255,.30); top: -180px; right: -140px; }
+.cover::after  { width: 440px; height: 440px; background: rgba(188,140,255,.26); bottom: -190px; left: -150px; }
+.cover-kicker {
+  display: inline-flex; align-items: center; gap: 12px;
+  color: var(--text-secondary); font-size: .85rem; font-weight: 700; letter-spacing: .38em;
+}
+.kicker-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-blue); box-shadow: 0 0 14px var(--accent-blue); }
+.cover-title { font-size: clamp(3rem, 8.5vw, 6.2rem); margin-top: 28px; letter-spacing: .02em; }
+.cover-year { font-size: clamp(4.4rem, 11vw, 8.6rem); font-weight: 900; line-height: 1.02; margin-top: 12px; }
+.cover-sub { margin-top: 30px; color: var(--text-secondary); font-size: 1.18rem; }
+.cover-sub b { color: var(--text-primary); }
+.cover-scroll { margin-top: 60px; color: var(--text-muted); font-size: .9rem; letter-spacing: .2em; animation: gl-float 2.4s ease-in-out infinite; }
+@keyframes gl-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(9px); } }
+
+/* 02 最爱类型 */
+.genre-list { padding: 10px 30px; }
+.genre-row { display: flex; align-items: center; gap: 20px; padding: 22px 0; border-bottom: 1px dashed var(--border-color); }
+.genre-row:last-child { border-bottom: none; }
+.genre-rank {
+  flex: none; width: 42px; height: 42px; display: grid; place-items: center;
+  border-radius: 12px; font-weight: 900; font-size: 1.05rem;
+  background: var(--bg-elevated); color: var(--text-secondary);
+}
+.genre-rank.rank-1 { background: linear-gradient(135deg, #f2cc60, #b98a1c); color: #171204; }
+.genre-rank.rank-2 { background: linear-gradient(135deg, #cdd3dc, #79838f); color: #10141b; }
+.genre-rank.rank-3 { background: linear-gradient(135deg, #d19a6a, #8a5a2b); color: #1c0f05; }
+.genre-main { flex: 1; min-width: 0; }
+.genre-name { font-weight: 700; margin-bottom: 9px; }
+.genre-hours { color: var(--text-secondary); font-weight: 600; font-size: .88rem; margin-left: 10px; }
+.genre-track { height: 12px; border-radius: 999px; background: var(--bg-elevated); overflow: hidden; }
+.genre-fill { height: 100%; width: 0; border-radius: 999px; background: var(--brand-gradient); animation: gl-fill 1.2s cubic-bezier(.2, .8, .2, 1) .15s forwards; }
+@keyframes gl-fill { from { width: 0; } }
+.genre-pct { flex: none; width: 76px; text-align: right; font-weight: 800; color: var(--text-secondary); }
+
+/* 03 最爱游戏 */
+.game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.game-card { position: relative; padding: 30px 26px 26px; }
+/* 榜单封面 / 占位块 */
+.game-cover { margin: -6px -6px 18px; aspect-ratio: 3 / 4; }
+.game-cover-ph span { font-size: 1.5rem; color: var(--text-muted); }
+.value-cover { margin: -4px -4px 16px; aspect-ratio: 3 / 4; }
+.game-rank {
+  position: absolute; top: 18px; right: 18px; width: 36px; height: 36px;
+  display: grid; place-items: center; border-radius: 10px; font-weight: 900;
+  background: var(--bg-elevated); color: var(--text-secondary);
+}
+.game-name { font-size: 1.35rem; font-weight: 800; padding-right: 44px; line-height: 1.3; }
+.game-meta { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.game-status { font-size: .82rem; color: var(--text-secondary); }
+.game-hours { margin-top: 22px; font-size: 2.3rem; font-weight: 900; }
+.game-hours small { font-size: 1rem; color: var(--text-secondary); margin-left: 3px; font-weight: 700; }
+
+/* 04 游戏人格 */
+.persona-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.persona-card { padding: 46px 42px; display: flex; flex-direction: column; justify-content: center; }
+.persona-label { color: var(--text-secondary); font-size: .9rem; letter-spacing: .12em; }
+.persona-tag { font-size: 2.3rem; font-weight: 900; margin-top: 14px; line-height: 1.25; }
+.persona-summary { margin-top: 18px; color: var(--text-secondary); font-size: .98rem; }
+.radar-card { padding: 28px 24px 20px; display: flex; flex-direction: column; justify-content: center; }
+.radar-box { height: 330px; width: 100%; }
+.radar-hint { text-align: center; color: var(--text-muted); font-size: .8rem; margin-top: 6px; }
+
+/* 05 最性价比 */
+.value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.value-card { padding: 28px 26px; }
+.value-name { font-size: 1.15rem; font-weight: 800; margin-top: 14px; line-height: 1.35; }
+.value-price { margin-top: 6px; color: var(--text-secondary); font-size: .95rem; }
+.value-detail { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-color); color: var(--text-secondary); font-size: .9rem; }
+.value-detail b { color: var(--accent-green); }
+
+/* 统计卡片：已弃用指标不再展示，3 张卡自适应 3 列 */
+.stat-grid { grid-template-columns: repeat(3, 1fr); }
+
+/* 06 年度总结 */
+.summary-card { position: relative; padding: 72px 64px; text-align: center; overflow: hidden; }
+.summary-card::before { content: ""; position: absolute; inset: 0; background: var(--brand-gradient); opacity: .07; z-index: 0; }
+.summary-kicker { position: relative; z-index: 1; color: var(--accent-purple); font-weight: 800; letter-spacing: .3em; font-size: .85rem; }
+.summary-text { position: relative; z-index: 1; margin-top: 24px; font-size: clamp(1.45rem, 3.2vw, 2.2rem); font-weight: 800; line-height: 1.55; }
+
+/* 响应式 + 打印截图保色 */
+@media (max-width: 860px) {
+  .stat-grid, .game-grid, .value-grid, .persona-grid { grid-template-columns: 1fr; }
+  .gl-section-head { flex-wrap: wrap; }
+  .summary-card { padding: 52px 32px; }
+}
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body::before { display: none; }
+}
+{% endautoescape %}{% endblock %}
+
+{% block content %}
+<script id="report-data" type="application/json">{{ payload | tojson }}</script>
+<main class="gl-page">
+
+  <!-- 封面 -->
+  <section class="cover gl-animate">
+    <div class="cover-kicker"><span class="kicker-dot"></span>GAMELIFE 年度报告</div>
+    <h1 class="cover-title gradient-text">{{ payload.user.name }}</h1>
+    <div class="cover-year gradient-text">{{ payload.user.year }}</div>
+    <p class="cover-sub"><b>{{ payload.user.total_games | comma }}</b> 款游戏 · 属于你的一年</p>
+    <div class="cover-scroll">往下滚动，回顾你的游戏人生 ↓</div>
+  </section>
+
+  <!-- 01 你的这一年 -->
+  <section class="gl-section" id="year">
+    <div class="gl-section-head">
+      <span class="gl-section-index">01</span>
+      <h2 class="gl-section-title">你的这一年</h2>
+      <span class="gl-section-sub">统计口径：{{ payload.user.year }}</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">总游玩时长</div>
+        <div class="stat-value gradient-text tnum">{{ payload.stats.total_hours | h }}<small>h</small></div>
+        <div class="stat-note">约 {{ (payload.stats.total_hours / 24) | int }} 个日夜</div>
+      </div>
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">游戏总数</div>
+        <div class="stat-value gradient-text tnum">{{ payload.stats.total_games | comma }}</div>
+        <div class="stat-note">库存里的全部家当</div>
+      </div>
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">吃灰率</div>
+        <div class="stat-value gradient-text tnum">{{ payload.stats.backlog_rate | pct }}</div>
+        <div class="stat-note">买了没玩的占比</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 最爱类型 -->
+  {% if payload.genres %}
+  <section class="gl-section" id="genres">
+    <div class="gl-section-head">
+      <span class="gl-section-index">02</span>
+      <h2 class="gl-section-title">最爱游戏类型</h2>
+      <span class="gl-section-sub">按游玩时长排行</span>
+    </div>
+    <div class="genre-list gl-card">
+      {% for g in payload.genres %}
+      <div class="genre-row">
+        <span class="genre-rank rank-{{ loop.index }}">#{{ loop.index }}</span>
+        <div class="genre-main">
+          <div class="genre-name">{{ g.name }}<span class="genre-hours tnum">{{ g.hours | h }}h</span></div>
+          <div class="genre-track"><div class="genre-fill" style="width: {{ (g.share * 100) | int }}%;"></div></div>
+        </div>
+        <span class="genre-pct tnum">{{ g.share | pct }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 03 最爱游戏 -->
+  {% if payload.top_games %}
+  <section class="gl-section" id="games">
+    <div class="gl-section-head">
+      <span class="gl-section-index">03</span>
+      <h2 class="gl-section-title">最爱游戏</h2>
+      <span class="gl-section-sub">陪伴你最久的 3 款</span>
+    </div>
+    <div class="game-grid">
+      {% for g in payload.top_games %}
+      <div class="game-card gl-card gl-card-hover">
+        {% if g.cover %}
+        <div class="game-cover gl-cover"><img src="{{ g.cover }}" alt="{{ g.name }}" loading="lazy" class="{{ 'is-landscape' if g.cover_kind == 'landscape' else '' }}"></div>
+        {% else %}
+        <div class="game-cover gl-cover-ph"><span>{{ g.name[:1] }}</span></div>
+        {% endif %}
+        <div class="game-rank">#{{ g.rank }}</div>
+        <div class="game-name">{{ g.name }}</div>
+        <div class="game-meta"><span class="badge">{{ g.genre }}</span><span class="game-status">{{ g.status }}</span></div>
+        <div class="game-hours tnum">{{ g.hours | h }}<small>h</small></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 04 游戏人格 -->
+  <section class="gl-section" id="persona">
+    <div class="gl-section-head">
+      <span class="gl-section-index">04</span>
+      <h2 class="gl-section-title">你的游戏人格</h2>
+    </div>
+    <div class="persona-grid">
+      <div class="persona-card gl-card gl-card-hover">
+        <div class="persona-label">本年度人格标签</div>
+        <div class="persona-tag gradient-text">{{ payload.persona.tag }}</div>
+        <p class="persona-summary">{{ payload.persona.summary }}</p>
+      </div>
+      {% if payload.persona.dimensions %}
+      <div class="radar-card gl-card">
+        <div id="persona-radar" class="radar-box"></div>
+        <p class="radar-hint">五维人格雷达 · 满值 100</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- 05 最性价比 -->
+  {% if payload.value_picks %}
+  <section class="gl-section" id="value">
+    <div class="gl-section-head">
+      <span class="gl-section-index">05</span>
+      <h2 class="gl-section-title">最性价比之选</h2>
+      <span class="gl-section-sub">每小时单价最低的 3 款</span>
+    </div>
+    <div class="value-grid">
+      {% for v in payload.value_picks %}
+      <div class="value-card gl-card gl-card-hover">
+        {% if v.cover %}
+        <div class="value-cover gl-cover"><img src="{{ v.cover }}" alt="{{ v.name }}" loading="lazy" class="{{ 'is-landscape' if v.cover_kind == 'landscape' else '' }}"></div>
+        {% else %}
+        <div class="value-cover gl-cover-ph"><span>{{ v.name[:1] }}</span></div>
+        {% endif %}
+        <div class="value-head"><span class="badge">性价比 #{{ loop.index }}</span></div>
+        <div class="value-name">{{ v.name }}</div>
+        <div class="value-price">购入价 ¥{{ v.price | comma }}</div>
+        <div class="value-detail">玩了 {{ v.hours | h }}h · 每小时仅 <b class="tnum">¥{{ v.cost_per_hour | h }}</b></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 06 年度总结 -->
+  <section class="gl-section" id="summary">
+    <div class="summary-card gl-card">
+      <div class="summary-kicker">ANNUAL SUMMARY</div>
+      <p class="summary-text">{{ payload.year_summary }}</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="gl-footer">
+  <div class="glogo">GAMELIFE · 游戏人生</div>
+  <p>由 GameLife 为你生成 · {{ payload.generated_at }}</p>
+  <p>右键保存整页截图，即可分享你的年度游戏报告</p>
+</footer>
+{% endblock %}
+
+{% block scripts %}{% autoescape false %}
+(function () {
+  "use strict";
+
+  /* ---------- 读取注入数据 ---------- */
+  var payload = {};
+  try {
+    var node = document.getElementById("report-data");
+    payload = JSON.parse(node.textContent);
+  } catch (err) {
+    payload = {};
+  }
+  window.__REPORT_DATA = payload;
+
+  var ECHARTS_FAILED = window.__ECHARTS_FAILED === true;
+  var GRADIENT = "linear-gradient(135deg, #58a6ff, #bc8cff)";
+
+  /* ---------- 雷达图：ECharts，CDN 失败时降级为纯 SVG ---------- */
+  function drawRadarSvg(el, dims) {
+    var NS = "http://www.w3.org/2000/svg";
+    var n = dims.length;
+    if (n < 3) return;
+    var w = el.clientWidth || 340;
+    var h = w;
+    var cx = w / 2, cy = h / 2;
+    var r = Math.max(60, Math.min(cx, cy) - 58);
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
+    svg.style.display = "block";
+
+    function pt(i, rad) {
+      var a = (-90 + i * (360 / n)) * Math.PI / 180;
+      return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
+    }
+    function poly(points, attrs) {
+      var p = document.createElementNS(NS, "polygon");
+      p.setAttribute("points", points.map(function (q) { return q[0] + "," + q[1]; }).join(" "));
+      for (var k in attrs) { if (attrs.hasOwnProperty(k)) p.setAttribute(k, attrs[k]); }
+      svg.appendChild(p);
+    }
+    function val(i) {
+      var v = Number(dims[i].value);
+      if (isNaN(v)) v = 0;
+      return Math.max(0, Math.min(100, v)) / 100 * r;
+    }
+
+    [0.25, 0.5, 0.75, 1].forEach(function (f) {
+      poly(dims.map(function (_, i) { return pt(i, r * f); }),
+           { fill: "none", stroke: "rgba(230,237,243,0.12)", "stroke-width": "1" });
+    });
+    dims.forEach(function (_, i) {
+      var p = pt(i, r);
+      var line = document.createElementNS(NS, "line");
+      line.setAttribute("x1", cx); line.setAttribute("y1", cy);
+      line.setAttribute("x2", p[0]); line.setAttribute("y2", p[1]);
+      line.setAttribute("stroke", "rgba(230,237,243,0.10)");
+      svg.appendChild(line);
+    });
+    poly(dims.map(function (_, i) { return pt(i, val(i)); }),
+         { fill: "rgba(188,140,255,0.28)", stroke: "#bc8cff", "stroke-width": "2.5" });
+    dims.forEach(function (_, i) {
+      var p = pt(i, val(i));
+      var dot = document.createElementNS(NS, "circle");
+      dot.setAttribute("cx", p[0]); dot.setAttribute("cy", p[1]);
+      dot.setAttribute("r", "4.5");
+      dot.setAttribute("fill", "#bc8cff");
+      svg.appendChild(dot);
+    });
+    dims.forEach(function (d, i) {
+      var lp = pt(i, r + 32);
+      var t = document.createElementNS(NS, "text");
+      t.setAttribute("x", lp[0]); t.setAttribute("y", lp[1]);
+      t.setAttribute("text-anchor", "middle");
+      t.setAttribute("dominant-baseline", "middle");
+      t.setAttribute("fill", "#8b949e");
+      t.setAttribute("font-size", "13");
+      t.setAttribute("font-weight", "600");
+      t.textContent = d.name;
+      svg.appendChild(t);
+    });
+    el.appendChild(svg);
+  }
+
+  function initRadar() {
+    var box = document.getElementById("persona-radar");
+    if (!box) return;
+    var persona = payload.persona || {};
+    var dims = persona.dimensions || [];
+    if (!dims.length) return;
+
+    if (window.echarts && !ECHARTS_FAILED) {
+      try {
+        var chart = window.echarts.init(box);
+        chart.setOption({
+          backgroundColor: "transparent",
+          tooltip: {},
+          radar: {
+            indicator: dims.map(function (d) { return { name: d.name, max: 100 }; }),
+            radius: "62%",
+            splitNumber: 4,
+            axisName: { color: "#8b949e", fontSize: 13, fontWeight: 600 },
+            axisLine: { lineStyle: { color: "rgba(230,237,243,0.14)" } },
+            splitLine: { lineStyle: { color: "rgba(230,237,243,0.10)" } },
+            splitArea: { areaStyle: { color: ["rgba(88,166,255,0.02)", "rgba(88,166,255,0.06)"] } }
+          },
+          series: [{
+            type: "radar",
+            data: [{
+              value: dims.map(function (d) { return Number(d.value) || 0; }),
+              name: persona.tag || "游戏人格",
+              symbol: "circle",
+              symbolSize: 5,
+              itemStyle: { color: "#bc8cff" },
+              lineStyle: { color: "#bc8cff", width: 2.5 },
+              areaStyle: { color: "rgba(188,140,255,0.25)" }
+            }]
+          }]
+        });
+        window.addEventListener("resize", function () { chart.resize(); });
+        return;
+      } catch (err) {
+        /* 初始化失败则降级为 SVG */
+      }
+    }
+    drawRadarSvg(box, dims);
+  }
+
+  function ready(fn) {
+    if (document.readyState !== "loading") { fn(); }
+    else { document.addEventListener("DOMContentLoaded", fn); }
+  }
+  ready(initRadar);
+})();
+{% endautoescape %}{% endblock %}
+

@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}{{ payload.user_name }} · 游戏墓园 · GameLife{% endblock %}
+
+{% block styles %}{% autoescape false %}
+/* ===== 游戏墓园 · 墓碑墙 ===== */
+
+/* 封面 */
+.grave-cover {
+  position: relative; text-align: center; padding: 120px 0 80px; overflow: hidden;
+}
+.grave-cover::before, .grave-cover::after {
+  content: ""; position: absolute; border-radius: 50%; filter: blur(80px); opacity: .45; z-index: -1;
+}
+.grave-cover::before { width: 420px; height: 420px; background: rgba(188,140,255,.28); top: -140px; right: -120px; }
+.grave-cover::after  { width: 360px; height: 360px; background: rgba(248,81,73,.18); bottom: -160px; left: -130px; }
+.grave-emoji { font-size: 3.4rem; display: block; margin-bottom: 6px; }
+.grave-kicker {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--text-secondary); font-size: .82rem; font-weight: 700; letter-spacing: .32em;
+}
+.grave-title { font-size: clamp(2.6rem, 7vw, 5rem); margin-top: 18px; }
+.grave-sub { color: var(--text-secondary); font-size: 1.1rem; margin-top: 16px; }
+.grave-sub b { color: var(--accent-red); }
+
+/* 分组标题 */
+.grave-year {
+  margin-top: 56px; padding-bottom: 10px; border-bottom: 2px dashed var(--border-color);
+  font-size: 1.5rem; font-weight: 800;
+}
+.grave-year span { color: var(--accent-purple); }
+
+/* 墓碑网格 */
+.grave-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 22px; margin-top: 22px;
+}
+
+/* 墓碑卡片 */
+.tombstone {
+  position: relative; padding: 30px 22px 24px; text-align: center;
+  background: linear-gradient(170deg, #1c2330 0%, #141a24 100%);
+  border: 1px solid rgba(230,237,243,.08);
+  border-top: 3px solid rgba(139,148,158,.25);
+  border-radius: 14px 14px 6px 6px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
+  transition: transform .22s ease, box-shadow .22s ease;
+  cursor: default;
+  overflow: hidden;
+}
+.tombstone:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(248,81,73,.25);
+}
+.tombstone.dead { filter: saturate(.55) brightness(.92); }
+.tombstone.alive { filter: none; }
+
+/* 石缝纹理 */
+.tombstone::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: repeating-linear-gradient(
+    110deg, transparent, transparent 3px, rgba(255,255,255,.012) 3px, rgba(255,255,255,.012) 5px
+  );
+}
+
+/* 墓碑顶部的游戏封面 / 占位块（做成压暗的遗像） */
+.tomb-cover { margin: -10px -2px 14px; aspect-ratio: 3 / 4; }
+.tomb-cover::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(13,17,23,.05) 0%, rgba(13,17,23,.55) 100%);
+  border-radius: inherit;
+}
+.tombstone.dead .tomb-cover img { filter: saturate(.6) brightness(.9); }
+.tomb-cover-ph span { font-size: 1.6rem; color: var(--text-muted); }
+
+.tomb-emoji { font-size: 2.2rem; line-height: 1; }
+.tomb-name { font-size: 1.2rem; font-weight: 800; margin-top: 10px; line-height: 1.3; }
+.tomb-detail { color: var(--text-secondary); font-size: .88rem; margin-top: 8px; line-height: 1.5; }
+.tomb-detail b { color: var(--text-primary); font-weight: 700; }
+.tomb-cause {
+  margin-top: 12px; padding: 5px 12px; display: inline-block;
+  border-radius: 999px; font-size: .78rem; font-weight: 700;
+  background: rgba(248,81,73,.10); color: var(--accent-red); border: 1px solid rgba(248,81,73,.18);
+}
+
+/* 通灵按钮 */
+.tomb-resurrect {
+  margin-top: 14px; padding: 7px 18px; font-size: .82rem; font-weight: 700;
+  border: 1px solid rgba(188,140,255,.4); border-radius: 999px;
+  background: rgba(188,140,255,.10); color: var(--accent-purple);
+  cursor: pointer; transition: background .2s, transform .15s;
+}
+.tomb-resurrect:hover { background: rgba(188,140,255,.22); transform: scale(1.04); }
+.tomb-resurrect:active { transform: scale(.97); }
+.tomb-resurrect.flip { animation: tomb-flip .6s ease forwards; }
+@keyframes tomb-flip {
+  0%   { transform: rotateY(0); }
+  50%  { transform: rotateY(90deg); }
+  100% { transform: rotateY(0); filter: saturate(1.4); }
+}
+
+/* 未入土区（未玩） */
+.unburied { margin-top: 16px; }
+.unburied-card {
+  display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+  background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 12px;
+}
+.unburied-emoji { font-size: 1.6rem; }
+.unburied-cover { flex: none; width: 56px; aspect-ratio: 3 / 4; }
+.unburied-name { font-weight: 700; }
+.unburied-hint { color: var(--text-muted); font-size: .82rem; }
+
+/* 页脚彩蛋 */
+.grave-footer-note {
+  margin-top: 60px; text-align: center; color: var(--text-muted); font-size: .88rem;
+  padding: 22px; border-top: 1px dashed var(--border-color);
+}
+
+@media (max-width: 600px) {
+  .grave-grid { grid-template-columns: 1fr 1fr; }
+}
+{% endautoescape %}{% endblock %}
+
+{% block content %}
+<script id="report-data" type="application/json">{{ payload | tojson }}</script>
+<main class="gl-page">
+
+  <!-- 封面 -->
+  <section class="grave-cover gl-animate">
+    <span class="grave-emoji">🪦</span>
+    <div class="grave-kicker"><span class="kicker-dot"></span>GAMELIFE 墓园</div>
+    <h1 class="grave-title gradient-text">游戏墓园</h1>
+    <p class="grave-sub"><b>{{ payload.games|length }}</b> 款被搁置的游戏在此安息</p>
+    <div class="grave-scroll" style="margin-top:44px;color:var(--text-muted);font-size:.88rem;letter-spacing:.18em;">往下翻看那些未竟的故事 ↓</div>
+  </section>
+
+  <!-- 墓园统计 -->
+  {% if payload.stats.total %}
+  <section class="gl-section" id="grave-stats">
+    <div class="gl-section-head">
+      <span class="gl-section-index">统计</span>
+      <h2 class="gl-section-title">墓园概况</h2>
+      <span class="gl-section-sub">数据截至 {{ payload.generated_at }}</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">安息游戏</div>
+        <div class="stat-value gradient-text tnum">{{ payload.stats.total }}</div>
+        <div class="stat-note">另有 {{ payload.stats.unburied }} 款未入土</div>
+      </div>
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">平均享年</div>
+        <div class="stat-value gradient-text" style="font-size:1.9rem;">{{ payload.stats.avg_age }}</div>
+        <div class="stat-note">累计 {{ payload.stats.total_hours | h }} 小时</div>
+      </div>
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">最短命</div>
+        <div class="stat-value gradient-text" style="font-size:1.35rem;line-height:1.4;">{{ payload.stats.shortest_name }}</div>
+        <div class="stat-note">仅活了 {{ payload.stats.shortest_age }}</div>
+      </div>
+      <div class="stat-card gl-card gl-card-hover gl-animate">
+        <div class="stat-label">最长寿</div>
+        <div class="stat-value gradient-text" style="font-size:1.35rem;line-height:1.4;">{{ payload.stats.longest_name }}</div>
+        <div class="stat-note">坚持了 {{ payload.stats.longest_age }}</div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 未入土区 -->
+  {% if payload.unburied %}
+  <section class="gl-section" id="unburied">
+    <div class="gl-section-head">
+      <span class="gl-section-index">00</span>
+      <h2 class="gl-section-title">未入土 · 尚未安葬</h2>
+      <span class="gl-section-sub">未玩过的游戏，先入土为敬</span>
+    </div>
+    <div class="unburied">
+      {% for g in payload.unburied %}
+      <div class="unburied-card">
+        {% if g.cover %}
+        <div class="unburied-cover gl-cover"><img src="{{ g.cover }}" alt="{{ g.name }}" loading="lazy" class="{{ 'is-landscape' if g.cover_kind == 'landscape' else '' }}"></div>
+        {% else %}
+        <div class="unburied-cover gl-cover-ph"><span>{{ g.name[:1] }}</span></div>
+        {% endif %}
+        <div>
+          <div class="unburied-name">{{ g.name }}</div>
+          <div class="unburied-hint">购入至今未启动</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- 墓碑墙：按卒年分组 -->
+  {% for year_group in payload.year_groups %}
+  <section class="gl-section" id="grave-{{ year_group.year }}">
+    <div class="gl-section-head">
+      <span class="gl-section-index">{{ loop.index }}</span>
+      <h2 class="grave-year"><span>{{ year_group.year }}</span> 卒</h2>
+      <span class="gl-section-sub">{{ year_group.games|length }} 款</span>
+    </div>
+    <div class="grave-grid">
+      {% for g in year_group.games %}
+      <div class="tombstone dead gl-card-hover" data-appid="{{ g.appid }}">
+        {% if g.cover %}
+        <div class="tomb-cover gl-cover"><img src="{{ g.cover }}" alt="{{ g.name }}" loading="lazy" class="{{ 'is-landscape' if g.cover_kind == 'landscape' else '' }}"></div>
+        {% else %}
+        <div class="tomb-cover gl-cover-ph"><span>{{ g.name[:1] }}</span></div>
+        {% endif %}
+        <div class="tomb-name">{{ g.name }}</div>
+        <div class="tomb-detail">
+          卒于 <b>{{ g.last_played }}</b><br>
+          享年 <b>{{ g.age }}</b>
+        </div>
+        <span class="tomb-cause">{{ g.cause }}</span>
+        <br>
+        <button class="tomb-resurrect" onclick="resurrect(this)">通灵（复活）</button>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+
+  {% if payload.year_groups|length == 0 and not payload.unburied %}
+  <section class="gl-section">
+    <div class="summary-card gl-card" style="padding:60px 40px;text-align:center;">
+      <div class="summary-kicker">EMPTY GRAVEYARD</div>
+      <p class="summary-text">墓园空空 —— 你还没有搁置任何游戏。</p>
+    </div>
+  </section>
+  {% endif %}
+
+</main>
+
+<footer class="gl-footer">
+  <div class="glogo">GAMELIFE · 游戏人生</div>
+  <p>由 GameLife 为你生成 · {{ payload.generated_at }}</p>
+  <p>点击「通灵」试着复活你最爱的弃坑游戏</p>
+</footer>
+{% endblock %}
+
+{% block scripts %}{% autoescape false %}
+(function () {
+  "use strict";
+
+  var payload = {};
+  try {
+    var node = document.getElementById("report-data");
+    payload = JSON.parse(node.textContent);
+  } catch (err) { payload = {}; }
+  window.__GRAVE_DATA = payload;
+
+  function resurrect(btn) {
+    var card = btn.closest(".tombstone");
+    if (!card) return;
+    if (card.classList.contains("alive")) {
+      /* 已复活 → 复原 */
+      card.classList.remove("alive");
+      card.classList.add("dead");
+      btn.classList.remove("flip");
+      btn.textContent = "通灵（复活）";
+      btn.style.borderColor = "";
+      btn.style.color = "";
+      btn.style.background = "";
+      return;
+    }
+    btn.classList.add("flip");
+    setTimeout(function () {
+      card.classList.remove("dead");
+      card.classList.add("alive");
+      btn.textContent = "已复活 ✓";
+      btn.style.borderColor = "rgba(63,185,80,.5)";
+      btn.style.color = "var(--accent-green)";
+      btn.style.background = "rgba(63,185,80,.10)";
+    }, 620);
+  }
+  window.resurrect = resurrect;
+})();
+{% endautoescape %}{% endblock %}
+
+

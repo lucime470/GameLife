@@ -1,0 +1,4 @@
+vdf
+requests
+psutil
+jinja2

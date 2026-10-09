@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>系列详情 · GameLife</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .series-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .series-head h1 { font-size: 1.6rem; }
+  .series-head .official { font-size: 0.82rem; color: var(--text-muted); }
+  .series-stat { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0 18px; }
+  .series-stat .pill {
+    background: var(--bg-elevated); border: 1px solid var(--border-color);
+    border-radius: 999px; padding: 4px 12px; font-size: 0.8rem; color: var(--text-secondary);
+  }
+  .series-grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  }
+  /* 已拥有 / 玩过（家庭库）/ 未拥有：不同描边区分，一眼能分出来 */
+  .scard {
+    position: relative; background: var(--bg-elevated); border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .scard.owned { border-color: rgba(63,185,80,0.45); }
+  .scard.owned:hover { border-color: rgba(63,185,80,0.85); transform: translateY(-2px); }
+  .scard.played { border-color: rgba(88,166,255,0.45); }
+  .scard.played:hover { border-color: rgba(88,166,255,0.85); transform: translateY(-2px); }
+  .scard.missing { opacity: 0.9; }
+  .scard.missing:hover { border-color: rgba(88,166,255,0.5); transform: translateY(-2px); }
+  .scard .s-cover {
+    position: relative; width: 100%; aspect-ratio: 2 / 3;
+    background: linear-gradient(160deg, #1a2130, #12171f);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .scard .s-cover img { display: block; width: 100%; height: 100%; }
+  .scard .s-cover img.portrait { object-fit: cover; }
+  .scard .s-cover img.landscape { object-fit: contain; }
+  .scard .s-cover .ph {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 2rem; font-weight: 900;
+  }
+  .scard .s-body { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .scard .s-name {
+    font-size: 0.86rem; font-weight: 700; line-height: 1.3; height: 2.6em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .scard .s-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; }
+  .scard .s-meta .val { font-size: 0.72rem; color: var(--text-secondary); }
+  .s-tag {
+    position: absolute; top: 6px; left: 6px; z-index: 2;
+    font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    backdrop-filter: blur(3px);
+  }
+  .s-tag.have { background: rgba(63,185,80,0.9); color: #06240f; }
+  .s-tag.played { background: rgba(88,166,255,0.9); color: #04203f; }
+  .s-tag.want { background: rgba(13,17,23,0.78); color: var(--text-secondary); border: 1px solid var(--border-color); }
+  .back-row { margin-bottom: 16px; }
+  .load-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back-row">
+    <a class="btn" href="/">← 返回面板</a>
+  </div>
+
+  <div class="card">
+    <div class="series-head">
+      <h1 id="title">系列详情</h1>
+      <span class="official" id="official"></span>
+    </div>
+    <div class="series-stat" id="stats"></div>
+    <div class="series-grid" id="grid">
+      <span class="muted" id="loading">加载中…</span>
+    </div>
+    <div class="load-note" id="note"></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const SERIES = params.get("name") || "";
+const ACCOUNT = params.get("account_id") || "";
+const WITH_META = params.get("with_metadata") || "0";
+
+function esc(v) {
+  return String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+function initialOf(row) {
+  const s = String(row.name_cn || row.name || "").trim();
+  return s ? s.slice(0, 1).toUpperCase() : "?";
+}
+function coverHTML(row) {
+  const initial = esc(initialOf(row));
+  if (!row.cover) return `<span class="ph">${initial}</span>`;
+  const cls = row.cover_kind === "landscape" ? "landscape" : "portrait";
+  return `<img class="${cls}" src="${esc(row.cover)}" alt="${initial}" loading="lazy"
+      onerror="this.style.display='none';this.parentNode.insertAdjacentHTML('beforeend','<span class=\'ph\'>${initial}</span>')">`;
+}
+function cardHTML(row) {
+  // 只显示一个名字（中文名优先）：不在名字下面再挂一行小字英文名。
+  // 英文原名仍在卡片悬浮提示（title）里可查，不占版面。
+  const title = `<span class="s-name">${esc(row.name_cn || row.name)}</span>`;
+  // 三态：确实拥有 / 未拥有但（家庭库）玩过 / 未拥有。时长与状态对前两态都显示。
+  const active = row.owned || row.played;
+  const cls = row.owned ? "owned" : (row.played ? "played" : "missing");
+  const tagCls = row.owned ? "have" : (row.played ? "played" : "want");
+  const tagText = row.owned ? "已拥有" : (row.played ? "玩过" : "未拥有");
+  const tagTip = row.played ? "未拥有，但在家庭库里玩过" : "";
+  const hours = active && row.playtime_hours ? `${row.playtime_hours} h` : "";
+  const status = active ? (row.status_name || "") : "";
+  return `
+  <div class="scard ${cls}" data-appid="${esc(row.appid)}" title="${esc(row.name_cn && row.name && row.name_cn !== row.name ? `${row.name_cn}（${row.name}）` : (row.name_cn || row.name))}">
+    <span class="s-tag ${tagCls}" title="${esc(tagTip)}">${tagText}</span>
+    <div class="s-cover">${coverHTML(row)}</div>
+    <div class="s-body">
+      ${title}
+      <div class="s-meta"><span class="val">${esc(status)}</span><span class="val">${esc(hours)}</span></div>
+    </div>
+  </div>`;
+}
+function statHTML(d) {
+  return [
+    `共 ${d.total_count} 部`,
+    `已拥有 ${d.owned_count} 部`,
+    d.played_count ? `玩过（家庭库）${d.played_count} 部` : "",
+    `有封面 ${d.with_cover} 部`,
+    d.playtime_hours ? `总时长 ${d.playtime_hours} h` : "",
+  ].filter(Boolean).map((t) => `<span class="pill">${esc(t)}</span>`).join("");
+}
+
+function queryFor(covers) {
+  const qs = new URLSearchParams({ name: SERIES, covers: covers ? "1" : "0" });
+  if (ACCOUNT) qs.set("account_id", ACCOUNT);
+  if (WITH_META) qs.set("with_metadata", WITH_META);
+  return qs.toString();
+}
+
+async function fetchSeries(covers) {
+  const res = await fetch("/api/series?" + queryFor(covers));
+  let data = null;
+  try { data = await res.json(); } catch (e) { data = null; }
+  if (!res.ok || !data || data.error) {
+    throw new Error((data && data.error) || ("HTTP " + res.status));
+  }
+  return data;
+}
+
+function renderSeries(data) {
+  $("title").textContent = data.series || SERIES;
+  $("official").textContent = data.official_name ? "官方系列名：" + data.official_name : "";
+  const rows = data.games || [];
+  $("stats").innerHTML = statHTML(data);
+  if (!rows.length) {
+    $("grid").innerHTML = '<span class="muted">这个系列暂时没有可展示的作品</span>';
+    return;
+  }
+  $("grid").innerHTML = rows.map(cardHTML).join("");
+}
+
+/* 用「补完封面」的第二次结果，就地替换占位块（不重排、不跳滚动条） */
+function applyCovers(data) {
+  (data.games || []).forEach((row) => {
+    if (!row.cover) return;
+    const card = document.querySelector(`.scard[data-appid="${row.appid}"] .s-cover`);
+    if (!card || card.querySelector("img")) return;
+    card.innerHTML = coverHTML(row);
+  });
+  $("stats").innerHTML = statHTML(data);
+  const missing = (data.games || []).filter((r) => !r.cover).length;
+  $("note").textContent = missing
+    ? `还有 ${missing} 部没有封面（官方图源里确实没有，已用占位块显示）。`
+    : "";
+}
+
+(async function load() {
+  document.title = (SERIES || "系列") + " · 系列详情 · GameLife";
+  $("title").textContent = SERIES || "系列详情";
+  if (!SERIES) {
+    $("grid").innerHTML = '<span class="muted">缺少系列名（URL 里需要 name 参数）</span>';
+    return;
+  }
+
+  let data = null;
+  try {
+    // 第一趟：只用本机已有封面，立刻出画面，绝不等网络
+    data = await fetchSeries(false);
+  } catch (e) {
+    $("grid").innerHTML = '<span class="muted">加载失败：' + esc(e.message) + '</span>';
+    return;
+  }
+  renderSeries(data);
+
+  const missing = (data.games || []).filter((r) => !r.cover).length;
+  if (!missing) return;
+  $("note").textContent = `正在为 ${missing} 部作品补封面…（后台进行，可以正常滚动）`;
+  try {
+    // 第二趟：按需去官方 CDN 补齐（服务端并发受限 + 总耗时预算）
+    const filled = await fetchSeries(true);
+    applyCovers(filled);
+  } catch (e) {
+    $("note").textContent = `还有 ${missing} 部没有封面（补齐过程出错，已用占位块显示）。`;
+  }
+})();
+</script>
+</body>
+</html>

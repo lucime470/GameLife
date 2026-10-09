@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="{% block description %}GameLife · 你的游戏人生可视化报告{% endblock %}">
+<title>{% block title %}GameLife{% endblock %}</title>
+{% block head %}{% endblock %}
+<style>
+/* ============================================================
+   GameLife · 公共骨架（第 3 层可视化呈现层）
+   约定：全部页面为单文件 HTML——CSS/JS 一律内嵌，双击即开。
+   子模板通过 block 扩展：title / description / head / styles /
+   content / scripts。styles 与 scripts 块位于 <style>/<script>
+   标签内部，书写时请用 Jinja 的 autoescape false 指令包裹，
+   ============================================================ */
+
+/* ---------- 1. 设计变量（Steam 深色主题，04 文档 2.4） ---------- */
+:root {
+  --bg-primary:      #0d1117;
+  --bg-card:         #161b22;
+  --bg-card-hover:   #1b2330;
+  --bg-elevated:     #1f2633;
+  --text-primary:    #e6edf3;
+  --text-secondary:  #8b949e;
+  --text-muted:      #6e7681;
+  --accent-blue:     #58a6ff;
+  --accent-green:    #3fb950;
+  --accent-yellow:   #d29922;
+  --accent-red:      #f85149;
+  --accent-purple:   #bc8cff;
+  --brand-gradient:  linear-gradient(100deg, #58a6ff 0%, #bc8cff 55%, #f85149 110%);
+  --border-color:    rgba(230, 237, 243, 0.09);
+  --radius-sm:       10px;
+  --radius-md:       16px;
+  --radius-lg:       24px;
+  --shadow-card:     0 8px 30px rgba(0, 0, 0, 0.35);
+  --font-stack:      -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     "PingFang SC", "Hiragino Sans GB",
+                     "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+
+/* ---------- 2. 重置 ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-stack);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+/* 深空氛围背景：固定三层径向光晕，不影响截图 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1100px 520px at 85% -8%, rgba(88, 166, 255, 0.12), transparent 62%),
+    radial-gradient(900px 460px at -5% 4%, rgba(188, 140, 255, 0.09), transparent 55%),
+    radial-gradient(700px 420px at 50% 115%, rgba(63, 185, 80, 0.06), transparent 60%),
+    var(--bg-primary);
+}
+img, svg, canvas { max-width: 100%; vertical-align: middle; }
+a { color: var(--accent-blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; cursor: pointer; }
+ul, ol { list-style: none; }
+h1, h2, h3, h4 { font-weight: 800; line-height: 1.25; letter-spacing: 0.01em; }
+
+/* ---------- 3. 布局 ---------- */
+.gl-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 28px 96px;
+}
+.gl-section { margin-top: 72px; }
+.gl-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.gl-card-hover { transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease; }
+.gl-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: rgba(88, 166, 255, 0.35);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(88, 166, 255, 0.18);
+}
+
+/* 章节标题 */
+.gl-section-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 26px; }
+.gl-section-index {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: var(--accent-purple);
+  background: rgba(188, 140, 255, 0.12);
+  border: 1px solid rgba(188, 140, 255, 0.25);
+  border-radius: 999px;
+  padding: 2px 14px;
+}
+.gl-section-title { font-size: 1.9rem; }
+.gl-section-sub { color: var(--text-secondary); font-size: 0.95rem; margin-left: auto; }
+
+/* ---------- 4. 通用元素 ---------- */
+.img { color: var(--text-secondary); }
+.badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+.gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* 入场动画：只播放一次，加载后为静止态，便于截图长图 */
+@keyframes gl-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+.gl-animate { animation: gl-rise 0.7s ease both; }
+
+/* 页脚 */
+.gl-footer { margin-top: 90px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+.gl-footer .glogo { font-weight: 800; color: var(--text-secondary); letter-spacing: 0.12em; }
+
+/* 打印/截图：无滚动条、无动画残留 */
+@media print {
+  body::before { display: none; }
+  .gl-animate { animation: none; }
+}
+
+/* ---------- 5. 统计卡片（大数字卡，多渲染器共用） ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.stat-card { padding: 32px 26px 28px; text-align: center; }
+.stat-label { color: var(--text-secondary); font-size: 0.9rem; letter-spacing: 0.08em; }
+.stat-value { font-size: 2.9rem; font-weight: 900; line-height: 1.15; margin-top: 10px; }
+.stat-value small { font-size: 1.05rem; font-weight: 700; margin-left: 3px; opacity: 0.75; }
+.stat-note { margin-top: 10px; color: var(--text-muted); font-size: 0.82rem; }
+@media (max-width: 860px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- 5b. 游戏封面 / 占位块（各页面共用） ---------- */
+/* 有封面就出图，没有就退化成带首字母的渐变占位块：绝不裂图、不报错 */
+.gl-cover {
+  position: relative; display: block; overflow: hidden;
+  border-radius: 12px; background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.gl-cover img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.35s ease;
+}
+/* 横版封面在竖版外框里完整居中（留边不裁切）；竖版铺满 */
+.gl-cover img.is-landscape { object-fit: contain; }
+.gl-cover:hover img { transform: scale(1.05); }
+.gl-cover.is-portrait img { object-fit: cover; }
+
+/* 占位块：首字母 + 品牌渐变，缺图游戏也能保持版面完整 */
+.gl-cover-ph {
+  position: relative; display: grid; place-items: center; overflow: hidden;
+  border-radius: 12px; border: 1px solid var(--border-color);
+  background: linear-gradient(140deg, #1b2330 0%, #161b22 55%, #1a1225 100%);
+  color: var(--text-secondary); font-weight: 900; letter-spacing: 0.04em;
+  text-transform: uppercase; user-select: none;
+}
+.gl-cover-ph::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120px 120px at 78% 18%, rgba(88, 166, 255, 0.18), transparent 70%);
+}
+.gl-cover-ph span { position: relative; z-index: 1; }
+
+/* ---------- 子模板私有样式 ---------- */
+{% block styles %}{% endblock %}
+</style>
+</head>
+<body>
+{% block content %}{% endblock %}
+<script>
+{% block scripts %}{% endblock %}
+</script>
+</body>
+</html>
+
+
+

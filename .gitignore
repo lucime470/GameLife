@@ -1,0 +1,40 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.idea/
+.pytest_cache/
+
+# ---- 运行时 / 个人数据（绝不入库；每个用户在本机自行生成）----
+game-life/data/cache.db
+game-life/data/cache.db-shm
+game-life/data/cache.db-wal
+game-life/data/accounts.json
+game-life/data/hidden_accounts.json
+game-life/data/localize_state.json
+game-life/data/writeback_state.json
+game-life/data/steam_live_ownership.json
+game-life/data/appinfo_index.json
+game-life/data/names_cn.json
+game-life/data/name_cn_baike.json
+game-life/data/series_official.json
+game-life/data/price_audit.json
+game-life/data/fx_rates.json
+game-life/data/pinned_ips.json
+game-life/data/covers/
+game-life/data/no_art.json
+game-life/output/
+game-life/logs/
+logs/
+*.log
+
+# ---- PyInstaller 构建产物（勿忽略 game-life/build/ 下的 game-life.spec 与 build_exe.py 本身）----
+/build/
+dist/
+game-life/build/build/
+*.spec.bak
+game-life/build/__pycache__/
+
+# ---- 设计/过程文档（按用户要求暂不入库，仅本地保留）----
+文档/
+*.bak

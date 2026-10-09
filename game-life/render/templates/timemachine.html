@@ -1,0 +1,112 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{{ payload.user_name }} · 时光机 · GameLife{% endblock %}
+
+{% block styles %}{% autoescape false %}
+/* ===== 时光机 · 去年今日 ===== */
+.tm-cover { position: relative; text-align: center; padding: 110px 0 60px; overflow: hidden; }
+.tm-cover::before { content: ""; position: absolute; width: 440px; height: 440px; border-radius: 50%; filter: blur(90px); opacity: .4; z-index: -1; background: rgba(88,166,255,.26); top: -160px; left: -130px; }
+.tm-cover::after  { content: ""; position: absolute; width: 380px; height: 380px; border-radius: 50%; filter: blur(80px); opacity: .32; z-index: -1; background: rgba(210,153,34,.18); bottom: -170px; right: -120px; }
+.tm-emoji { font-size: 3.2rem; display: block; margin-bottom: 8px; }
+.tm-kicker { display: inline-flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: .82rem; font-weight: 700; letter-spacing: .32em; }
+.tm-title { font-size: clamp(2.4rem, 6.5vw, 4.4rem); margin-top: 16px; }
+.tm-sub { color: var(--text-secondary); font-size: 1.08rem; margin-top: 14px; }
+.tm-sub b { color: var(--accent-blue); }
+
+/* 卡片网格 */
+.tm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+.tm-card { padding: 34px 28px 28px; text-align: center; position: relative; overflow: hidden; }
+.tm-card::before {
+  content: "⏰"; position: absolute; right: -18px; top: -22px;
+  font-size: 6rem; opacity: .06; transform: rotate(-12deg);
+}
+.tm-card-date { color: var(--text-secondary); font-size: .86rem; letter-spacing: .06em; }
+.tm-card-line { font-size: 1.28rem; font-weight: 800; margin-top: 14px; line-height: 1.4; }
+.tm-card-line b { color: var(--accent-blue); }
+
+/* 卡片封面 / 占位块 */
+.tm-thumb { aspect-ratio: 3 / 4; margin: 0 0 18px; }
+.tm-thumb.gl-cover-ph span { font-size: 1.7rem; color: var(--text-muted); }
+
+.tm-card-hours {
+  margin: 20px auto 0; max-width: 240px;
+  border-top: 1px dashed var(--border-color); padding-top: 16px;
+}
+.tm-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
+.tm-row span { color: var(--text-secondary); font-size: .88rem; }
+.tm-row b { font-weight: 800; }
+
+.tm-delta {
+  display: inline-block; margin-top: 18px; padding: 5px 14px;
+  border-radius: 999px; font-size: .82rem; font-weight: 700;
+}
+.tm-delta.up {
+  background: rgba(63,185,80,.10); color: var(--accent-green);
+  border: 1px solid rgba(63,185,80,.22);
+}
+.tm-delta.flat {
+  background: rgba(139,148,158,.10); color: var(--text-secondary);
+  border: 1px solid rgba(139,148,158,.20);
+}
+.tm-empty { font-size: 1.15rem; font-weight: 700; color: var(--text-secondary); margin-top: 12px; }
+{% endautoescape %}{% endblock %}
+
+{% block content %}
+<main class="gl-page">
+
+  <section class="tm-cover gl-animate">
+    <span class="tm-emoji">⏰</span>
+    <div class="tm-kicker">GAMELIFE TIME MACHINE</div>
+    <h1 class="tm-title gradient-text">时光机</h1>
+    <p class="tm-sub">一年前的今天 · <b>{{ payload.target_date_display }}</b></p>
+  </section>
+
+  {% if payload.has_matches %}
+  <section class="gl-section">
+    <div class="gl-section-head">
+      <span class="gl-section-index">Ⅷ</span>
+      <h2 class="gl-section-title">去年今日你在玩</h2>
+      <span class="gl-section-sub">{{ payload.matches|length }} 款游戏</span>
+    </div>
+
+    <div class="tm-grid">
+      {% for m in payload.matches %}
+      <div class="tm-card gl-card gl-card-hover gl-animate">
+        {% if m.cover %}
+        <div class="tm-thumb gl-cover"><img src="{{ m.cover }}" alt="{{ m.name }}" loading="lazy" class="{{ 'is-landscape' if m.cover_kind == 'landscape' else '' }}"></div>
+        {% else %}
+        <div class="tm-thumb gl-cover-ph"><span>{{ m.name[:1] }}</span></div>
+        {% endif %}
+        <div class="tm-card-date">{{ m.then_date_display }}</div>
+        <div class="tm-card-line">你在玩 <b>{{ m.name }}</b></div>
+        <div class="tm-card-hours">
+          <div class="tm-row"><span>当时已玩</span><b class="tnum">{{ m.then_hours_text }}h</b></div>
+          <div class="tm-row"><span>现在已玩</span><b class="tnum">{{ m.now_hours_text }}h</b></div>
+        </div>
+        <div><span class="{{ m.delta_cls }}">{{ m.delta_text }}</span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <section class="gl-section">
+    <div class="gl-card" style="padding:70px 40px;text-align:center;">
+      <div class="tm-emoji">🕰</div>
+      <p class="tm-empty">一年前的今天，你没有游戏记录</p>
+      <p style="color:var(--text-muted);font-size:.9rem;margin-top:10px;">继续玩，明年此时就有故事可讲了。</p>
+    </div>
+  </section>
+  {% endif %}
+
+</main>
+
+<footer class="gl-footer">
+  <div class="glogo">GAMELIFE · 游戏人生</div>
+  <p>由 GameLife 为你生成 · {{ payload.generated_at }}</p>
+  <p>时间会记得你玩过的每一款游戏</p>
+</footer>
+{% endblock %}
