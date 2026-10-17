@@ -97,7 +97,7 @@ async function loadAccounts() {
   renderAddedAccounts(accounts);
   renderSetup(!!data.needs_setup, accounts.length);
   if (data.suggested && data.suggested.id) {
-    toast(`本机找到启动指定的账号「${data.suggested.name || data.suggested.id}」，可在「添加账号」里加入面板`);
+    toast(`检测到账号「${data.suggested.name || data.suggested.id}」，可在「添加账号」里加入`);
   }
   if (!accounts.length) {
     setStatus("请先添加账号");
@@ -110,7 +110,7 @@ function renderSetup(needsSetup, count) {
   if (!box) return;
   box.classList.toggle("hidden", !needsSetup);
   const hint = $("setupHint");
-  if (hint && needsSetup) hint.textContent = "还没有添加任何账号（点左边的按钮开始）";
+  if (hint && needsSetup) hint.textContent = "还没有添加账号，点左边的按钮开始";
   if (needsSetup) $("accountCard").classList.add("hidden");
   if (!needsSetup && count) $("accountCount").textContent = `已添加 ${count} 个`;
 }
@@ -121,7 +121,7 @@ function renderAddedAccounts(accounts) {
   if (!box) return;
   if (count) count.textContent = accounts.length ? `已添加 ${accounts.length} 个` : "还没有添加账号";
   if (!accounts.length) {
-    box.innerHTML = '<span class="muted">还没有添加任何账号，点下面「添加其它账号」开始。</span>';
+    box.innerHTML = '<span class="muted">还没有添加账号。</span>';
     return;
   }
   box.innerHTML = accounts.map((a) => `
@@ -143,7 +143,7 @@ async function openAddModal() {
     _addCandidates = data.available || [];
     const box = $("addList");
     if (!_addCandidates.length) {
-      box.innerHTML = '<span class="muted">本机没有更多可添加的账号了（已添加的都已列出）。</span>';
+      box.innerHTML = '<span class="muted">本机没有其它可添加的账号。</span>';
     } else {
       box.innerHTML = _addCandidates.map((a) => `
         <label class="item add-row">
@@ -186,7 +186,7 @@ async function confirmAddAccounts() {
 
 async function removeAccount(id) {
   const label = accountLabel((await getJSON("/api/accounts")).accounts.find((a) => a.id === id));
-  if (!confirm(`从面板列表移除「${label}」？\n\n只是不再显示它，Steam 里的文件与存档都不会被删除。`)) return;
+  if (!confirm(`从面板列表移除「${label}」？\n\n不会删除 Steam 里的任何文件。`)) return;
   try {
     const d = await postJSON("/api/accounts/remove", { account_id: id, current: state.account });
     toast(d.message || "已移除");
@@ -350,7 +350,7 @@ function renderValue(d) {
     <div class="sec" style="margin-bottom:6px">最划算</div>${top.length ? line(top, "value") : emptyHint("性价比")}
     <div class="sec" style="margin:10px 0 6px">最亏（买了没玩）</div>${waste.length ? line(waste, "waste") : emptyHint("最浪费")}
     ${freeLine ? `<div class="sec" style="margin:10px 0 6px">免费游戏时长榜</div>${freeLine}` : ""}
-    ${emptyBoth ? '<div class="hint">说明：拿不到价格的游戏既不算免费、也不参与性价比排序，等补齐价格后这里会自动出现数据。</div>' : ""}`;
+    ${emptyBoth ? '<div class="hint">拿不到价格的游戏暂不参与排名，补齐价格后会自动出现。</div>' : ""}`;
 }
 
 /* 族谱每个系列框**统一最多 4 张**封面（与后端 webapp/api.py 的 SERIES_THUMB_LIMIT 一致）；
@@ -412,13 +412,13 @@ function renderSeries(d) {
       const hintStyle = "display:block;font-size:10px;color:var(--text-muted);line-height:1.2;"
         + "white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
       gapHint = noArtThumbs >= missingThumbs
-        ? `<span style="${hintStyle}" title="这 ${missingThumbs} 部在 Steam 官方 CDN 上没有封面图（404），点多少次抓取也补不上">另有 ${missingThumbs} 部官方暂无封面图</span>`
-        : `<span style="${hintStyle}" title="可点操作区的「抓取中文名与封面」补齐这 ${missingThumbs} 张">封面不全（缺 ${missingThumbs} 张），可点抓取</span>`;
+        ? `<span style="${hintStyle}" title="官方图源没有这几张封面（404），抓取也补不上">另有 ${missingThumbs} 部官方暂无封面图</span>`
+        : `<span style="${hintStyle}" title="点操作区的「抓取中文名与封面」可以补齐">封面不全（缺 ${missingThumbs} 张），可点抓取</span>`;
     }
     const playedCount = g.played_count || 0;
     const tip = `打开「${esc(name)}」系列的全部作品（已拥有 ${g.owned_count || 0}/${g.total_count || 0} 部`
       + (playedCount ? `，另玩过（家庭库）${playedCount} 部` : "") + "）"
-      + "（缩略图：每个系列最多 4 部代表作，不足 4 部的有多少显示多少；亮绿点 = 你已拥有，蓝边 = 家庭库玩过）";
+      + "（每个系列最多 4 部代表作；亮绿点 = 已拥有，蓝边 = 家庭库玩过）";
     const playedBadge = playedCount ? ` · 玩过 ${playedCount} 部` : "";
     return `
     <a class="sbox" href="${esc(href)}" target="_blank" rel="noopener" title="${tip}">
@@ -430,7 +430,7 @@ function renderSeries(d) {
     </a>`;
   }).join("");
 
-  box.innerHTML = `<div class="hint" style="margin:0 0 8px">共 ${list.length} 个系列 · 每个系列最多显示 4 部代表作（不足 4 部的有多少显示多少）· 亮绿点 = 你已拥有，蓝边 = 家庭库玩过</div>
+  box.innerHTML = `<div class="hint" style="margin:0 0 8px">共 ${list.length} 个系列 · 每个系列最多 4 部代表作 · 亮绿点 = 已拥有，蓝边 = 家庭库玩过</div>
     <div class="series-grid">${cards}</div>`;
 }
 
@@ -442,7 +442,7 @@ function renderWishlist(d) {
   const priceLess = (d.genres || []).every((g) => !g.avg_price_yuan);
   if (!warns.length) {
     const extra = priceLess
-      ? `（价格数据不足，类型均价暂按 0 计${unknown ? `，有 ${unknown} 款价格未知` : ""}；补齐价格后判定会更准）`
+      ? `（价格数据不足，均价暂按 0 计${unknown ? `，有 ${unknown} 款价格未知` : ""}；补齐后判定更准）`
       : "";
     box.innerHTML = `<span class="muted">暂无明显「买了不玩」的类型，保持冷静。${esc(extra)}</span>`;
     return;
@@ -469,8 +469,8 @@ function renderRadar(d) {
     + ` / ${withData} 款有数据 / ${scanned} 款扫描</div>`;
   if (!list.length) {
     const empty = completed
-      ? "有成就数据的游戏都已 100% 全成就，无需冲刺"
-      : (d.hint || "暂无成就数据（建议先运行 stats/radar 采集）");
+      ? "有数据的游戏都已全成就，无需冲刺"
+      : (d.hint || "暂无成就数据，先跑一次 stats 或 radar");
     html += `<span class="muted">${esc(empty)}</span>`;
   } else {
     html += list.map((c) => `
@@ -522,7 +522,7 @@ function renderSharedNotice(own) {
   const trace = own && own.trace ? own.trace : 0;
   const degraded = !!(own && own.degraded);
   if (degraded) {
-    notice.textContent = "未能读取授权票，本次未剔除任何家庭共享游戏。";
+    notice.textContent = "没读到授权票，本次不剔除家庭共享游戏。";
   } else {
     const parts = [];
     if (playedShared > 0) parts.push(`已保留 ${playedShared} 款家庭共享但你玩过的游戏`);
@@ -599,7 +599,7 @@ function renderCoverage(c) {
   let text = `中文名 ${c.name_cn || 0}/${total} · 封面 ${c.cover || 0}/${total}`;
   if (c.price != null) text += ` · 价格 ${c.price || 0}`;
   box.textContent = text;
-  box.title = "中文名 / 封面 / 价格的覆盖率；添加账号后程序会自动补齐，缺的可点下面「抓取中文名与封面」手动重拓";
+  box.title = "中文名 / 封面 / 价格的覆盖率；添加账号后会自动补齐，缺的可点「抓取中文名与封面」";
 }
 
 async function refresh() {
@@ -661,13 +661,13 @@ function setWritebackUI(on) {
   btn.textContent = "分类写回 Steam：" + (on ? "已开启" : "关闭");
   btn.className = "btn" + (on ? " on" : "");
   $("writebackHint").textContent = on
-    ? "写回已开启：运行 run 时会把状态标签写进 Steam 分类。再次点击本按钮可取消分类。"
-    : "写回会把状态标签写进 Steam 分类；Steam 正在运行时会被安全拦截。";
+    ? "已开启：run 时把状态标签写进 Steam 分类，再点一次可关闭"
+    : "写回会改 Steam 分类；Steam 运行时会被拦截";
 }
 
 async function doRun() {
   const dry = $("dryRun").checked;
-  if (!dry && !confirm("将真实执行：写快照 + 导出分类（写回开启时还会改 Steam 分类）。继续？")) return;
+  if (!dry && !confirm("将真实执行：写快照 + 导出分类（写回开启还会改 Steam 分类）。继续？")) return;
   const btn = $("btnRun");
   btn.disabled = true; btn.textContent = "执行中…";
   try {
@@ -687,10 +687,10 @@ async function doRun() {
 
 async function doWriteback() {
   if (isMergedAccount()) {
-    toast("合流库不是账号，无法写回 Steam 分类：请切回单个账号再写回", true);
+    toast("合流库不能写回 Steam 分类，请切回单个账号", true);
     return;
   }
-  if (!confirm("即将切换 Steam 分类写回状态（写回/取消分类）。确认继续？")) return;
+  if (!confirm("切换 Steam 分类写回状态？")) return;
   const btn = $("btnWriteback");
   btn.disabled = true;
   try {
@@ -707,14 +707,14 @@ async function doWriteback() {
 
 async function doBackfill() {
   if (isMergedAccount()) {
-    toast("合流库不支持历史快照回填：快照是按账号保存的，请切回单个账号再回填", true);
+    toast("快照按账号保存，合流库不能回填，请切回单个账号", true);
     return;
   }
   try {
     const d = await getJSON("/api/backfill?" + q({ dry_run: 1 }));
     const s = d.stats || {};
     log(`[预览] 策略：${s.strategy || ""}\n可回填日期数：${s.dates != null ? s.dates : "-"}\n说明：${d.note || ""}`);
-    if (confirm("是否真正执行回填？（只补缺，不覆盖既有、不碰今天）")) {
+    if (confirm("真正执行回填？（只补缺，不覆盖今天）")) {
       const r = await postJSON("/api/backfill", { account_id: state.account, dry_run: false });
       log(JSON.stringify(r.stats || r, null, 2));
       toast("回填完成");
@@ -767,7 +767,7 @@ async function doLocalize() {
   const limit = parseInt($("localizeLimit").value, 10) || 20;
   const old = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "抓取中…（可能要几十秒）";
+  btn.textContent = "抓取中…（可能几十秒）";
   setStatus("抓取中文名与封面…");
   try {
     const d = await postJSON("/api/localize", {
@@ -837,7 +837,7 @@ function renderFrames(d) {
       // 「尚未生成」（还没画过）和「生成失败」（画过但报错）分开说，别让用户以为坏了
       const tag = p.missing ? "尚未生成" : "生成失败";
       wrap.innerHTML = `<header><span>${esc(p.label)}</span><span class="pill">${tag}</span></header>
-        <div style="padding:12px" class="muted">${esc(p.error || "点上面的「生成 / 刷新全部页面」即可生成")}</div>`;
+        <div style="padding:12px" class="muted">${esc(p.error || "点「生成 / 刷新全部页面」即可生成")}</div>`;
       box.appendChild(wrap);
       return;
     }
@@ -1042,8 +1042,8 @@ function renderJob(d) {
   if ($("jobText")) $("jobText").textContent = d.message || (total ? (done + "/" + total) : "进行中…");
   if ($("jobHint")) {
     $("jobHint").textContent = (d.pending || 0) > 0
-      ? `后面还有 ${d.pending} 个账号排队（同一时刻只跑一个，避免把网络打满）`
-      : "首次添加账号会自动抓取中文名 / 封面 / 价格 / 系列目录；后台进行，可以先逛别的（系列目录分几次慢慢补齐）。";
+      ? `后面还有 ${d.pending} 个账号排队（同时只跑一个）`
+      : "首次添加账号会在后台自动抓取中文名 / 封面 / 价格 / 系列，可以先逛别的";
   }
   card.classList.remove("hidden");
 }
@@ -1071,7 +1071,7 @@ async function pollJob() {
     _jobSeen = stamp;
     if (d.last.ok) await afterJobDone(d.last);
     else toast("自动补齐没完成：" + (d.last.error || d.last.message || "未知原因")
-      + "（可点「抓取中文名与封面」手动重试）", true);
+      + "（可点「抓取中文名与封面」重试）", true);
   }
   if (active) { renderJob(d); ensureJobPolling(); }
   else stopJobPolling();
@@ -1108,7 +1108,7 @@ async function afterJobDone(d) {
     const retry = (d.retry_needed || []).join("/");
     const miss = c.missing_price || 0;
     const extra = retry.indexOf("price") >= 0
-      ? `价格${miss ? "有 " + miss + " 款" : ""}没取到，稍后会自动重试`
+      ? `价格${miss ? "有 " + miss + " 款" : ""}没取到，稍后自动重试`
       : "个别项稍后会自动重试";
     toast(`${head}；${extra}`, "warn");
   } else {

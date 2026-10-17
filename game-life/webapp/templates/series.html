@@ -159,7 +159,7 @@ function renderSeries(data) {
   const rows = data.games || [];
   $("stats").innerHTML = statHTML(data);
   if (!rows.length) {
-    $("grid").innerHTML = '<span class="muted">这个系列暂时没有可展示的作品</span>';
+    $("grid").innerHTML = '<span class="muted">这个系列暂时没有作品</span>';
     return;
   }
   $("grid").innerHTML = rows.map(cardHTML).join("");
@@ -176,7 +176,7 @@ function applyCovers(data) {
   $("stats").innerHTML = statHTML(data);
   const missing = (data.games || []).filter((r) => !r.cover).length;
   $("note").textContent = missing
-    ? `还有 ${missing} 部没有封面（官方图源里确实没有，已用占位块显示）。`
+    ? `${missing} 部官方图源没有封面，已用占位块显示。`
     : "";
 }
 
@@ -184,7 +184,7 @@ function applyCovers(data) {
   document.title = (SERIES || "系列") + " · 系列详情 · GameLife";
   $("title").textContent = SERIES || "系列详情";
   if (!SERIES) {
-    $("grid").innerHTML = '<span class="muted">缺少系列名（URL 里需要 name 参数）</span>';
+    $("grid").innerHTML = '<span class="muted">缺少系列名（URL 需要 name 参数）</span>';
     return;
   }
 
@@ -200,13 +200,13 @@ function applyCovers(data) {
 
   const missing = (data.games || []).filter((r) => !r.cover).length;
   if (!missing) return;
-  $("note").textContent = `正在为 ${missing} 部作品补封面…（后台进行，可以正常滚动）`;
+  $("note").textContent = `正在补 ${missing} 部封面…（后台进行，可正常滚动）`;
   try {
     // 第二趟：按需去官方 CDN 补齐（服务端并发受限 + 总耗时预算）
     const filled = await fetchSeries(true);
     applyCovers(filled);
   } catch (e) {
-    $("note").textContent = `还有 ${missing} 部没有封面（补齐过程出错，已用占位块显示）。`;
+    $("note").textContent = `${missing} 部封面补齐失败，已用占位块显示。`;
   }
 })();
 </script>

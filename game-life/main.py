@@ -205,8 +205,8 @@ def cmd_setup(args: argparse.Namespace) -> int:
         logger.warning("定位账号失败：%s", exc)
         return EXIT_ERROR
     except EOFError:
-        print("[setup] 未在交互终端中运行，无法读取账号选择输入。")
-        print("提示：请改用  python game-life/main.py stats --account-id <ID>  指定账号。")
+        print("[setup] 当前不在交互终端，无法交互选账号。")
+        print("提示：请改用  main.py stats --account-id <ID>")
         logger.warning("账号选择需要交互输入，当前 stdin 不可用")
         return EXIT_ERROR
     except KeyboardInterrupt:
@@ -297,7 +297,7 @@ def _resolve_steam_account(args: argparse.Namespace):
         print(f"  {acc['id']}  当前显示名：{acc['name']}")
     if len(accounts) > 8:
         print(f"  ... 其余 {len(accounts) - 8} 个")
-    print("  合流库         也可用 --account-id all：把面板里已添加的账号当作同一个账号统计")
+    print("  合流库         也可用 --account-id all：把已添加的账号合并统计")
     return None
 
 
@@ -533,7 +533,7 @@ def _load_merged_library(steam_path, with_metadata):
     merge = _merge_module()
     members = merge.resolve_members(steam_path)
     if not members:
-        print("错误：合流库需要至少一个账号（请先在面板添加账号，或改用 --account-id <ID>）")
+        print("错误：合流库至少要有一个账号（先在面板添加，或改用 --account-id <ID>）")
         return None
 
     parts: list[dict] = []
@@ -554,7 +554,7 @@ def _load_merged_library(steam_path, with_metadata):
         print("错误：合流库的成员账号都没有读到游玩数据")
         return None
     if skipped:
-        print(f"提示：账号 {'、'.join(skipped)} 读取失败，已跳过（仍按其余 {len(parts)} 个账号合流）")
+        print(f"提示：账号 {'、'.join(skipped)} 读取失败，已跳过（仍按其余 {len(parts)} 个合流）")
 
     merged = merge.merge_library_parts(parts)
     line = merge.summary_line(merged["ownership"])
@@ -671,7 +671,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     if _is_merge_account(account_id):
         # 合流库不是账号：不写回 Steam 分类、不写历史快照（两者都是按账号记录的），
         # 只做本地导出，绝不替用户猜「代表哪个账号」。
-        print("\n(合流库) 跳过 Steam 写回与历史快照；仅导出本地分类文件。")
+        print("\n(合流库) 跳过写回与快照，只导出本地分类文件。")
         export_path = _export_classification(
             classified, play_stats, games_meta, filename="classification_merged.json"
         )
@@ -685,7 +685,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     if writeback_on and classified:
         _steam_writeback(steam_path, account_id, classified)
     else:
-        print("\n(写回按钮关闭) 跳过 Steam 写回；开启请执行：python game-life/main.py writeback")
+        print("\n(未开启写回) 跳过 Steam 写回；开启：main.py writeback")
 
     # 1. 保存当日快照（供时光机/考古/挑战使用）
     snapshot_games = {
@@ -756,7 +756,7 @@ RULES_PATH = Path(__file__).resolve().parent / "rules.json"
 def _config_show(path: Path) -> int:
     if not path.exists():
         print(f"rules.json 不存在：{path}")
-        print("当前使用各模块内置默认规则；可用如下命令创建：")
+        print("当前使用内置默认规则；可用如下命令创建：")
         print("  python game-life/main.py config --set playtime.recent_days 30")
         return EXIT_OK
     try:
@@ -1622,10 +1622,10 @@ _COMMAND_TARGETS = {
 }
 
 _COMMAND_DESCRIPTIONS = {
-    "setup": "首次配置（定位 Steam、选账号、读取游戏与时长）",
-    "run": "扫描 + 状态更新 + 存快照 + 本地导出分类（不写回 Steam）",
+    "setup": "首次配置：定位 Steam、选账号、读游戏与时长",
+    "run": "扫描、更新状态、存快照、导出分类（不写回 Steam）",
     "stats": "终端统计看板",
-    "recommend": "智能推荐（--time 剩余时间 / --mood 心情 / --genre 类型）",
+    "recommend": "按时间 / 心情 / 类型推荐下一款玩什么",
     "price": "每小时单价排行榜",
     "family": "游戏族谱",
     "radar": "成就冲刺雷达",
@@ -1639,26 +1639,23 @@ _COMMAND_DESCRIPTIONS = {
     "checkup": "生成体检报告 HTML",
     "persona": "游戏人格测试",
     "config": "查看/修改规则配置",
-    "writeback": "按钮：执行则分类并写回 Steam，再次执行则取消分类（移除状态标签）",
-    "backfill": "回填历史快照（按 last_played 近似推断，解决时光机/考古冷启动）",
-    "panel": "启动本地网页面板（浏览器里使用全部功能）",
-    "artwork": "抓取/补齐游戏封面（先本机 Steam 图，再官方 CDN，无需加速器）",
-    "localize": "抓取游戏中文名（先本机 Steam 数据，再官方商店中文名）",
-    "audit": "归属自动体检（自己报出显示错标，不用人肉核对）",
+    "writeback": "开启 / 关闭：把状态标签写回 Steam 分类",
+    "backfill": "回填历史快照（按最后游玩时间近似推断）",
+    "panel": "启动本地网页面板",
+    "artwork": "补齐游戏封面（先本机 Steam，再官方 CDN）",
+    "localize": "补齐游戏中文名（先本机 Steam，再官方商店）",
+    "audit": "归属自动体检（自动报出显示错标）",
 }
 
 
 # --account-id 的统一说明（17 处子命令共用）：all = 合流库（把已添加账号当作同一个账号）
-_ACCOUNT_ID_HELP = "指定账号 id（userdata 目录名）；all = 合流库（把已添加的账号合并统计）"
+_ACCOUNT_ID_HELP = "账号 id（userdata 目录名）；all = 合流库（把已添加账号合并统计）"
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="game-life",
-        description=(
-            "读取你的 Steam 库，自动追踪游玩状态、生成统计与可视化，"
-            "整理成「你的游戏人生」。"
-        ),
+        description="读取本机 Steam 库，生成统计看板与可视化报告。",
     )
     parser.add_argument("--version", action="version", version=f"game-life {VERSION}")
     subparsers = parser.add_subparsers(

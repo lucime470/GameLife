@@ -21,15 +21,14 @@ set MAIN=game-life\main.py
 
 echo ============================================
 echo   游戏人生 GameLife - 本地面板
-if "%ACCOUNT%"=="" echo   账号: 未指定，请打开后在面板里添加
+if "%ACCOUNT%"=="" echo   账号: 未指定（打开面板后添加）
 if not "%ACCOUNT%"=="" echo   账号: %ACCOUNT%
 echo ============================================
 echo.
-echo 正在启动本地服务，几秒后会自动打开浏览器。
-echo 默认地址是 http://127.0.0.1:8765/ ，若端口被占用会自动顺延，
-echo 请以本窗口打印出来的地址为准。
+echo 正在启动，几秒后自动打开浏览器。
+echo 地址 http://127.0.0.1:8765/ （端口被占用会自动顺延，以本窗口为准）
 echo.
-echo 关闭面板：直接关闭本窗口，或在窗口里按 Ctrl+C 。
+echo 关闭面板：关掉本窗口即可（或按 Ctrl+C）。
 echo.
 
 REM ---- 判断源码是否比打包程序新 ----
@@ -52,15 +51,15 @@ goto prefer_exe
 
 REM ---- 源码更新：优先用源码 ----
 :prefer_source
-echo [提示] 检测到源码比打包程序更新，优先用源码方式运行（避免跑旧 exe）。
-echo        想消除本提示，请重新打包：.venv\Scripts\python.exe game-life\build\build_exe.py
+echo [提示] 源码比打包程序新，本次用源码运行。
+echo        想消除提示，重新打包：.venv\Scripts\python.exe game-life\build\build_exe.py
 echo.
 if not exist "%PY%" goto source_unavailable
 if not exist "%MAIN%" goto source_unavailable
 goto probe_venv
 
 :source_unavailable
-echo [提示] 源码比打包程序新，但缺少 .venv 或 main.py，无法用源码方式，回退到打包程序。
+echo [提示] 缺少 .venv 或 main.py，回退到打包程序。
 echo.
 goto prefer_exe
 
@@ -69,7 +68,7 @@ REM ---- 打包程序可用：优先用打包程序 ----
 if not exist "%EXE%" goto probe_venv
 "%EXE%" panel --help >nul 2>&1
 if not errorlevel 1 goto run_exe
-echo [提示] %EXE% 是较旧版本、不含面板功能，改用源码方式。
+echo [提示] %EXE% 版本较旧、没有面板功能，改用源码。
 echo.
 
 :probe_venv
@@ -77,7 +76,7 @@ if not exist "%PY%" goto probe_sys
 if not exist "%MAIN%" goto probe_sys
 "%PY%" "%MAIN%" panel --help >nul 2>&1
 if not errorlevel 1 goto run_venv
-echo [提示] 源码方式暂不支持面板，改用系统 python 再试。
+echo [提示] 源码方式不可用，改用系统 python。
 echo.
 
 :probe_sys
@@ -95,17 +94,17 @@ if not errorlevel 1 set SRC_NEWER=1
 exit /b
 
 :run_exe
-echo [启动] 使用打包程序 %EXE%
+echo [启动] 打包程序 %EXE%
 "%EXE%" panel %ACCOUNT_ARG%
 goto done
 
 :run_venv
-echo [启动] 使用源码方式 %PY%
+echo [启动] 源码方式 %PY%
 "%PY%" "%MAIN%" panel %ACCOUNT_ARG%
 goto done
 
 :run_sys
-echo [启动] 未找到 .venv，改用系统 python
+echo [启动] 系统 python
 python "%MAIN%" panel %ACCOUNT_ARG%
 goto done
 
@@ -113,14 +112,13 @@ goto done
 echo [错误] 找不到可用的启动方式：
 echo        - 缺少 %EXE%
 echo        - 缺少 %PY% 且缺少 %MAIN%
-echo        请确认本文件放在仓库根目录（与 game-life 文件夹同级）。
+echo        请把本文件放在仓库根目录（与 game-life 同级）。
 pause
 exit /b 1
 
 :noready
 echo [错误] 当前程序还没有面板功能（panel 子命令）。
-echo        说明代码尚未更新到含面板的版本，或 exe 还是旧版。
-echo        请更新代码后重试，或先运行：game-life\main.py 下的其它命令。
+echo        代码或 exe 还是旧版，请更新后重试。
 pause
 exit /b 1
 

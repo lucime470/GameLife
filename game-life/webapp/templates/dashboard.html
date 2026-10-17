@@ -37,11 +37,11 @@
   <div class="card hidden" id="setupCard" style="margin-bottom:16px">
     <h2>开始使用 <span class="tag">第 1 步</span></h2>
     <div class="hint" style="margin-top:0">
-      面板<b>不会自动读取你本机的全部账号</b>。请先点下面的「添加账号」，勾选你想在这里查看的账号。
+      先点下面的「添加账号」，勾选你要看的账号。
     </div>
     <div class="row" style="margin-top:10px">
       <button class="btn primary" id="btnSetupAdd">添加账号</button>
-      <span class="pill" id="setupHint">至少添加一个账号后即可看到数据</span>
+      <span class="pill" id="setupHint">添加账号后即可看到数据</span>
     </div>
   </div>
 
@@ -49,7 +49,7 @@
   <div class="card hidden" id="accountCard" style="margin-bottom:16px">
     <h2>管理账号 <span class="tag" id="accountCount">-</span></h2>
     <div class="hint" style="margin-top:0">
-      这里只显示你<b>已经添加</b>的账号。移除只是把它从面板列表里拿掉，<b>不会删除 Steam 里的任何文件或存档</b>。
+      只显示已添加的账号；移除只是从列表里拿掉，不会动 Steam 里的文件。
     </div>
     <div class="sec" style="margin:10px 0 6px">已添加的账号</div>
     <div class="list" id="addedAccounts"></div>
@@ -168,9 +168,9 @@
           <option value="150">150 款（慢）</option>
         </select>
       </label>
-      <span class="pill" id="localizeHint">离线优先：先读本机 Steam 缓存，缺的再去官方商店补</span>
+      <span class="pill" id="localizeHint">离线优先：先读本机缓存，缺的再去商店补</span>
     </div>
-    <div class="hint" id="writebackHint">写回会把状态标签写进 Steam 分类；Steam 正在运行时会被安全拦截。</div>
+    <div class="hint" id="writebackHint">写回会改 Steam 分类；Steam 运行时会被拦截。</div>
     <pre class="log" id="log" style="margin-top:12px">（操作输出会显示在这里）</pre>
   </div>
 
@@ -219,7 +219,7 @@
       <button class="btn" id="btnAddClose">关闭</button>
     </header>
     <div class="hint" style="margin-top:0">
-      勾选要加入面板的账号。这里只<b>只读</b>本机 <code>userdata</code> 目录，不会改动或删除 Steam 的任何文件。
+      勾选要加入的账号。只读本机 <code>userdata</code>，不会改动 Steam 文件。
     </div>
     <div class="list" id="addList" style="margin-top:10px;max-height:320px;overflow:auto"></div>
     <div class="row" style="margin-top:12px;justify-content:flex-end">
