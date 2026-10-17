@@ -76,7 +76,7 @@ def _stable_data_dir() -> Path:
 
 
 LOGS_DIR = _stable_app_dir() / "logs"
-VERSION = "0.1.0"
+VERSION = "1.0.0"
 
 # 无论从哪个目录启动，都保证能 import 到 game-life 下的包
 if str(APP_ROOT) not in sys.path:
