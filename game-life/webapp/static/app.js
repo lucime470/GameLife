@@ -172,6 +172,7 @@ async function confirmAddAccounts() {
     });
     closeAddModal();
     toast(d.message || "已添加账号");
+    state.mergedOption = d.merged || null;
     state.account = fillAccountSelect(d.accounts || [], d.current || state.account);
     renderAddedAccounts(d.accounts || []);
     renderSetup(!!d.needs_setup, (d.accounts || []).length);
@@ -190,6 +191,7 @@ async function removeAccount(id) {
   try {
     const d = await postJSON("/api/accounts/remove", { account_id: id, current: state.account });
     toast(d.message || "已移除");
+    state.mergedOption = d.merged || null;
     state.account = fillAccountSelect(d.accounts || [], d.current || "");
     renderAddedAccounts(d.accounts || []);
     renderSetup(!!d.needs_setup, (d.accounts || []).length);
